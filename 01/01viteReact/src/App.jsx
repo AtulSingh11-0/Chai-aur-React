@@ -1,10 +1,12 @@
+import Temp from './Temp';
 
 function App() {
 
   return (
-    <div>
-      <h1>hello vite + react</h1>
-    </div>
+    <>
+      <h1>Hello vite + react</h1>
+      <Temp name="Atul" />
+    </>
   )
 }
 
