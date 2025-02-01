@@ -1,0 +1,100 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.question {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #2b2b2b;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.question h1 {
+  color: #ffffff;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.question ul {
+  list-style-type: disc;
+  padding-left: 2rem;
+  text-align: justify;
+}
+
+.question li {
+  padding: 0.5rem 0;
+  color: #ffffff;
+  position: relative;
+  padding-left: 1rem;
+}
+
+.count {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.count span {
+  color: #6233da;
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.card {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+button {
+  padding: 0.5rem 1.125rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.125rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease-in;
+}
+
+.increment-btn {
+  background-color: #059842;
+  color: white;
+}
+
+.increment-btn:hover {
+  background-color: #08b43c;
+}
+
+.decrement-btn {
+  background-color: #d71500;
+  color: white;
+}
+
+.decrement-btn:hover {
+  background-color: #fa2811;
+}
+
+.reset-btn {
+  background-color: #007dd1;
+  color: white;
+}
+
+.reset-btn:hover {
+  background-color: #1092e9;
+}
+
+@media (max-width: 600px) {
+  .card {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  button {
+    width: 200px;
+  }
+}
