@@ -14,3 +14,17 @@
 - understood how react works under the hood
 - learnt how reconciliation and diffing algorithm works in react
 - understood how react converts jsx to react elements and how it renders them
+
+# 02 hooks-in-react
+
+- learnt about the basics of hooks in react
+- implemented useState in react and understood how it works
+- did an assignment on useState and added limit to the counter
+
+# 03 tailwind-props
+
+- learnt about tailwind css and how to use it in react
+- understood the basics of tailwind css
+- implemented tailwind css in a react project
+- learnt about props in react and how to use them
+- implemented props in a react project
