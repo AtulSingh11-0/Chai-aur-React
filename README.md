@@ -28,3 +28,12 @@
 - implemented tailwind css in a react project
 - learnt about props in react and how to use them
 - implemented props in a react project
+
+# 04 bg-color-change
+
+- learnt about state management more properly
+- used onClick event to change the background color of the page
+- learnt about implementing inline styles in react with hover effect
+- learnt about passing arguments to event handlers in react
+- learnt about passing functions as props in react
+- learnt about rendering multiple components in react using map function
