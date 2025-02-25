@@ -1,35 +1,36 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import Button from './Button'
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [color, setColor] = useState('black'); // state to manage background-color change
+
+  const bgColors = [
+    'Red',
+    'Green',
+    'Orange',
+    'DarkOrchid',
+    'Fuchsia',
+    'MediumSpringGreen',
+    'Salmon',
+    'RoyalBlue',
+  ] // array of background-colors which will be used
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    // background
+    <div
+      className='w-full h-screen duration-200'
+      style={{ backgroundColor: color }}
+    >
+      {/* button container */}
+      <div className='flex flex-wrap justify-center fixed bottom-5 inset-x-0'>
+        <div className='bg-white flex flex-wrap justify-center px-3 py-2 rounded-full gap-3 shadow-xl border border-black'>
+          {bgColors.map((bgColor, index) => (
+            // rendering button component with colors
+            <Button key={index} color={bgColor} onClick={() => setColor(bgColor)} />
+          ))}
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </div>
   )
 }
 
-export default App
