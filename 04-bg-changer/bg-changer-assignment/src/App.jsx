@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import Button from './Button'
+import Button from './components/Button'
 
 export default function App() {
   const [color, setColor] = useState('black'); // state to manage background-color change

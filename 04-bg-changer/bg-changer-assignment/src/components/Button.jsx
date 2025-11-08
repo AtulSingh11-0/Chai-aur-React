@@ -14,7 +14,7 @@ export default function Button({ color, onClick }) {
   return (
     <button
       onClick={onClick}
-      className='outline-none rounded-full px-3 py-1.5 font-bold duration-100'
+      className='outline-none rounded-full px-3 py-1.5 font-bold transition ease-in duration-300'
       style={{
         color: isHover ? 'white' : color,
         backgroundColor: !isHover ? '' : color,
