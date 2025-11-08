@@ -37,3 +37,12 @@
 - learnt about passing arguments to event handlers in react
 - learnt about passing functions as props in react
 - learnt about rendering multiple components in react using map function
+
+# 05 password-generator
+
+- created a password generator app in react
+- learnt about different hooks in react like useState, useEffect and useRef
+- implemented different features in the password generator app like copying to clipboard, generating password based on user preferences etc.
+- understood how to manage state in a more complex application
+- learnt about controlled components in react
+- understood how to optimize functions in react using useCallback hook
