@@ -46,3 +46,15 @@
 - understood how to manage state in a more complex application
 - learnt about controlled components in react
 - understood how to optimize functions in react using useCallback hook
+
+# 06 currency-converter
+
+- created a currency converter app in react
+- learnt about fetching data from an API in react using fetch
+- implemented currency conversion based on real-time exchange rates
+- created a custom hook for fetching data from the API
+- understood how to manage state in a more complex application with multiple components
+- learnt about useEffect hook in more detail and how to use it for side effects like data fetching
+- implemented error handling and loading states in the currency converter app
+- learnt about creating reusable components in react and passing props to them
+- understood the importance of component structure and organization in a react application
