@@ -58,3 +58,17 @@
 - implemented error handling and loading states in the currency converter app
 - learnt about creating reusable components in react and passing props to them
 - understood the importance of component structure and organization in a react application
+
+# 07 react-router
+
+- created a react application with routing using react-router
+- learnt about different types of routing in react-router like BrowserRouter
+- implemented nested routing using Declarative Routing approach
+- created different components for different routes like Home, AboutUs, ContactUs, Users, UserDetail etc.
+- understood how to use Link component for navigation between routes
+- learnt about route parameters and how to use them to fetch data for specific users
+- implemented data fetching for user details based on route parameters
+- understood how to use loaders in react-router for data fetching before rendering a route
+- learnt about error handling in react-router and how to display error messages for invalid routes or data
+- created an index file to export all components for easier imports
+- understood the importance of organizing components and routes in a react application
