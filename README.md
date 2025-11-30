@@ -72,3 +72,22 @@
 - learnt about error handling in react-router and how to display error messages for invalid routes or data
 - created an index file to export all components for easier imports
 - understood the importance of organizing components and routes in a react application
+
+# 08 mini-context
+
+- created a mini context API in react to manage global state
+- learnt about context API in react and how to use it for state management
+- implemented a UserContext to manage user authentication state
+- understood how to use Context.Provider to provide context values to child components
+- learnt about useContext hook to consume context values in functional components
+- it helped me understand the concept of prop drilling and how context API can help avoid it
+- it was pretty hard to implement at first but with practice I was able to understand it better, still need more practice to master it and use it effectively in larger applications
+
+# 09 theme-switcher
+
+- created a theme switcher app in react using context API
+- implemented light and dark themes using context API
+- used a different approach than mini-context by adding all the context logic in a same file with(ThemeContext, ThemeProvider, useTheme)
+- projects in companies generally follow this approach to avoid creating multiple files for each context
+- created a toggle button to switch between light and dark themes
+- wrote 2 different logic to switch themes, one using conditional rendering and other by toggling class names
