@@ -91,3 +91,14 @@
 - projects in companies generally follow this approach to avoid creating multiple files for each context
 - created a toggle button to switch between light and dark themes
 - wrote 2 different logic to switch themes, one using conditional rendering and other by toggling class names
+
+# 10 todo-context-api
+
+- created a todo app in react using context API for state management
+- implemented adding, updating, deleting and toggling todo items
+- used the same approach as theme-switcher by adding all the context logic in a same file with(TodoContext, TodoProvider, useTodo)
+- created reusable components for TodoItem and TodoForm
+- styled the app using tailwind css with some advanced animations and effects
+- learnt about organizing components and contexts in a react application for better maintainability
+- it really helped me improve my understanding of context API from previous mini-context project and how to use it effectively in a larger application
+- overall it was a great learning experience but still need more practice to master context API and use it in real-world applications
