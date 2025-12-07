@@ -102,3 +102,16 @@
 - learnt about organizing components and contexts in a react application for better maintainability
 - it really helped me improve my understanding of context API from previous mini-context project and how to use it effectively in a larger application
 - overall it was a great learning experience but still need more practice to master context API and use it in real-world applications
+
+# 11 todo-redux
+
+- created a todo app in react using redux for state management
+- learnt about redux and how to use it for state management in react applications
+- implemented adding, updating, deleting and toggling todo items using redux toolkit
+- created a todoSlice using createSlice from redux toolkit to manage todo state and actions
+- used configureStore from redux toolkit to create the redux store
+- used Provider from react-redux to provide the redux store to the react application
+- it really helped me understand the differences between context API and redux for state management
+- comparatively redux seems more easier to grasp than context API
+- overall it was a great learning experience and I feel more confident in using redux for state management in react applications
+- still need more practice to master redux and use it in real-world applications with larger state management needs
