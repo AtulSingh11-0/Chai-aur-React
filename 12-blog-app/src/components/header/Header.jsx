@@ -30,6 +30,11 @@ export default function Header() {
       name: 'Add Post',
       path: '/add-post',
       active: authStatus
+    },
+    {
+      name: 'Post Editor',
+      path: '/post',
+      active: !authStatus
     }
   ]
   return (

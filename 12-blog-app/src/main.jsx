@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router'
 import App from './App.jsx'
-import { Home, LoginForm, SignupForm } from './components'
+import { BlogPostForm, Home, LoginForm, SignupForm } from './components'
 import './index.css'
 import store from './store/store.js'
 
@@ -13,6 +13,7 @@ const router = createBrowserRouter(
       <Route index element={<Home />} />
       <Route path='/signup' element={<SignupForm />} />
       <Route path='/login' element={<LoginForm />} />
+      <Route path='/post' element={<BlogPostForm />} />
     </Route>
   )
 )
