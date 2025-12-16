@@ -14,7 +14,7 @@ export default function Input({
     <div>
       {label && (<label
         htmlFor={id}
-        className='inline-block mb-1 pl-1'
+        className='block mb-1 font-medium text-sm text-gray-700'
       >
         {label}
       </label>
