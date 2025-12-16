@@ -8,6 +8,9 @@ import Input from "./Input";
 import Logo from "./Logo";
 import SignupForm from "./auth/SignupForm";
 import LoginForm from "./auth/LoginForm";
+import RTE from "./RTE";
+import Select from "./Select";
+import BlogPostForm from "./BlogPostForm";
 
 export {
   Button,
@@ -20,4 +23,7 @@ export {
   LogoutButton,
   SignupForm,
   LoginForm,
+  Select,
+  RTE,
+  BlogPostForm,
 };
