@@ -1,29 +1,14 @@
-import Button from "./Button";
-import Container from "./container/Container";
-import Footer from "./footer/Footer";
-import Header from "./header/Header";
-import LogoutButton from "./header/LogoutButton";
-import Home from "./Home";
-import Input from "./Input";
-import Logo from "./Logo";
-import SignupForm from "./auth/SignupForm";
-import LoginForm from "./auth/LoginForm";
-import RTE from "./RTE";
-import Select from "./Select";
-import BlogPostForm from "./BlogPostForm";
+// Common components
+export { Button, Input, Logo, Select } from "./Common";
 
-export {
-  Button,
-  Container,
-  Footer,
-  Header,
-  Home,
-  Input,
-  Logo,
-  LogoutButton,
-  SignupForm,
-  LoginForm,
-  Select,
-  RTE,
-  BlogPostForm,
-};
+// Layout components
+export { Container, Footer, Header, Protected } from "./layout";
+
+// Auth components
+export { LoginForm, SignupForm, LogoutButton } from "./auth";
+
+// RTE component
+export { RTE } from "./RTE";
+
+// Post components
+export { PostForm, PostCard } from "./Post";
