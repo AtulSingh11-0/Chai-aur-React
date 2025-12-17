@@ -24,32 +24,50 @@ class StorageService {
   /**
    * Get file preview URL
    *
-   * Generates a URL for previewing a file. For images, returns an optimized
-   * preview. For other file types, returns a download link. The URL can be
-   * used directly in <img> tags or as download links.
+   * Returns a direct URL to view the file. Uses getFileView instead of getFilePreview
+   * because Appwrite's free plan blocks image transformations (403 error).
+   * The URL can be used directly in <img> tags or as download links.
    *
-   * Note: This is a synchronous method that returns a URL object, not a Promise.
+   * Note: This is a synchronous method that returns a URL string, not a Promise.
    *
    * @param {string} fileId - Unique identifier of the file
    *
-   * @returns {URL} URL object that can be converted to string for use in src attributes
+   * @returns {string} URL string for use in src attributes
    *
    * @example
    * // Basic usage
    * const previewUrl = storageService.getFilePreviewURL('file-123');
-   * <img src={previewUrl.href} alt="Preview" />
+   * <img src={previewUrl} alt="Preview" />
    *
    * @example
    * // Use in React component
    * const ImagePreview = ({ fileId }) => (
-   *   <img src={storageService.getFilePreviewURL(fileId).href} alt="Preview" />
+   *   <img src={storageService.getFilePreviewURL(fileId)} alt="Preview" />
    * );
    */
   getFilePreviewURL(fileId) {
-    return this.storage.getFilePreview({
-      bucketId: config.appwriteBucketId,
-      fileId,
-    });
+    try {
+      if (!fileId) {
+        console.error("No fileId provided to getFilePreviewURL");
+        return "";
+      }
+
+      // Use getFileView for direct file access (works on free plan)
+      // getFilePreview is blocked on free plan due to image transformation restrictions
+      const url = this.storage.getFileView({
+        bucketId: config.appwriteBucketId,
+        fileId: fileId,
+      });
+
+      // Return the URL as a string
+      return url.href || url.toString() || url;
+    } catch (error) {
+      console.error("Error generating file view URL:", error, {
+        fileId,
+        bucketId: config.appwriteBucketId,
+      });
+      return "";
+    }
   }
 
   /**
@@ -151,6 +169,9 @@ class StorageService {
         bucketId: config.appwriteBucketId,
         fileId: customFileId || ID.unique(),
         file,
+        permissions: [
+          'read("any")', // Allow anyone to read/view the file (for public images)
+        ],
         onProgress,
       });
     } catch (err) {
@@ -216,31 +237,11 @@ class StorageService {
     }
   }
 
-  // TODO: Add file download and view methods
-  // - getFileDownload(fileId) - Get URL to download file content
-  // - getFileView(fileId) - Get URL to view file in browser (inline display)
-
-  // TODO: Add file listing and search
-  // - listFiles(queries, search) - List all files with optional filtering and search
-
-  // TODO: Add advanced preview options
-  // - getFilePreviewURL(fileId, options) - Support width, height, quality, format options
-  // - getOptimizedImageUrl(fileId, width, height) - Helper for responsive images
-
   // TODO: Add file validation helpers
   // - validateFileType(file, allowedTypes) - Check if file type is allowed
   // - validateFileSize(file, maxSize) - Check if file size is within limit
   // - isImageFile(mimeType) - Check if file is an image
   // - isVideoFile(mimeType) - Check if file is a video
-
-  // TODO: Add bulk operations
-  // - bulkUploadFiles(files) - Upload multiple files at once with progress
-  // - bulkDeleteFiles(fileIds) - Delete multiple files
-
-  // TODO: Add utility methods
-  // - getFileExtension(filename) - Extract file extension from filename
-  // - formatFileSize(bytes) - Convert bytes to human-readable format (KB, MB, GB)
-  // - generateThumbnail(fileId) - Generate optimized thumbnail for images
 }
 
 /**

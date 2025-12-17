@@ -52,16 +52,11 @@ export class PostService {
    * ]);
    */
   async getAllPosts(queries = [Query.equal("status", PostStatus.ACTIVE)]) {
-    try {
-      return await this.tablesDB.listRows({
-        databaseId: config.appwriteDatabaseId,
-        tableId: config.appwritePostsTableId,
-        queries,
-      });
-    } catch (err) {
-      console.error("Error fetching posts:", err);
-      throw err;
-    }
+    return await this.tablesDB.listRows({
+      databaseId: config.appwriteDatabaseId,
+      tableId: config.appwriteTableId,
+      queries,
+    });
   }
 
   /**
@@ -93,7 +88,7 @@ export class PostService {
     try {
       return await this.tablesDB.getRow({
         databaseId: config.appwriteDatabaseId,
-        tableId: config.appwritePostsTableId,
+        tableId: config.appwriteTableId,
         rowId: postId,
       });
     } catch (err) {
@@ -103,6 +98,40 @@ export class PostService {
       }
       console.error("Error fetching post by ID:", err);
       throw err;
+    }
+  }
+
+  /**
+   * Get a post by its slug
+   *
+   * Retrieves a post using its URL-friendly slug instead of the document ID.
+   * Useful for SEO-friendly URLs like /posts/my-awesome-post
+   *
+   * @async
+   * @param {string} slug - URL slug of the post
+   * @returns {Promise<Object|null>} Post object if found, null if not found
+   * @throws {Error} Database or network errors from Appwrite
+   *
+   * @example
+   * const post = await postService.getPostBySlug('my-awesome-post');
+   */
+  async getPostBySlug(slug) {
+    try {
+      const response = await this.tablesDB.listRows({
+        databaseId: config.appwriteDatabaseId,
+        tableId: config.appwriteTableId,
+        queries: [Query.equal("slug", slug), Query.limit(1)],
+      });
+
+      // Handle different possible response formats
+      if (response && response.rows && response.rows.length > 0) {
+        return response.rows[0];
+      }
+
+      return null;
+    } catch (err) {
+      console.error("Error fetching post by slug:", err);
+      return null; // Return null instead of throwing to prevent app crashes
     }
   }
 
@@ -141,7 +170,7 @@ export class PostService {
     slug,
     title,
     content,
-    tags = [],
+    authorId,
     status = PostStatus.DRAFT,
     featuredImage = null,
     publishedDate = null,
@@ -149,12 +178,13 @@ export class PostService {
     try {
       return await this.tablesDB.createRow({
         databaseId: config.appwriteDatabaseId,
-        tableId: config.appwritePostsTableId,
-        rowId: `${ID.unique()}-${slug}`,
+        tableId: config.appwriteTableId,
+        rowId: ID.unique(),
         data: {
+          slug,
           title,
           content,
-          tags,
+          authorId,
           status,
           featuredImage,
           publishedDate:
@@ -207,9 +237,15 @@ export class PostService {
     try {
       return await this.tablesDB.updateRow({
         databaseId: config.appwriteDatabaseId,
-        tableId: config.appwritePostsTableId,
+        tableId: config.appwriteTableId,
         rowId: postId,
-        data: updatedData,
+        data: {
+          ...updatedData,
+          publishedDate:
+            updatedData.status === PostStatus.ACTIVE
+              ? new Date().toISOString()
+              : updatedData.publishedDate,
+        },
       });
     } catch (err) {
       console.error("Error updating post:", err);
@@ -249,7 +285,7 @@ export class PostService {
     try {
       return await this.tablesDB.deleteRow({
         databaseId: config.appwriteDatabaseId,
-        tableId: config.appwritePostsTableId,
+        tableId: config.appwriteTableId,
         rowId: postId,
       });
     } catch (err) {
@@ -259,21 +295,11 @@ export class PostService {
   }
 
   // TODO: Add advanced post operations
-  // - getPostsByAuthor(authorId) - Filter posts by author
-  // - getPostsByTag(tag) - Get posts with a specific tag
   // - searchPosts(searchTerm) - Full-text search in title and content
-  // - getRelatedPosts(postId) - Get posts with similar tags
   // - getDraftPosts() - Get all draft posts for current user
-  // - publishPost(postId) - Publish a draft (convenience method)
-  // - unpublishPost(postId) - Revert published post to draft
 
   // TODO: Add validation methods
-  // - validatePostData(postData) - Validate post data before save
   // - isSlugUnique(slug) - Check if slug already exists
-
-  // TODO: Add bulk operations
-  // - bulkUpdatePosts(postIds, updatedData) - Update multiple posts
-  // - bulkDeletePosts(postIds) - Delete multiple posts
 }
 
 /**

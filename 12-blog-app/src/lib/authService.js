@@ -68,20 +68,10 @@ export class AuthService {
       // Automatically log in after successful registration
       return await this.login({ email, password });
 
-      // TODO: Add user profile creation
-      // - Create a document in users collection with additional profile data
-      // - Store preferences, settings, avatar, etc.
-      // - Link profile document to user account
-
       // TODO: Send welcome email
       // - Integrate email service (SendGrid, Mailgun, etc.)
       // - Send personalized welcome message
       // - Include getting started guide or resources
-
-      // TODO: Add analytics tracking
-      // - Track successful registration event
-      // - Log user acquisition source
-      // - Send to analytics platform (Google Analytics, Mixpanel, etc.)
     } catch (err) {
       console.error("Sign up error:", err);
 
