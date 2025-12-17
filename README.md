@@ -115,3 +115,28 @@
 - comparatively redux seems more easier to grasp than context API
 - overall it was a great learning experience and I feel more confident in using redux for state management in react applications
 - still need more practice to master redux and use it in real-world applications with larger state management needs
+
+# 12 Blog-App
+
+- created a blog app in react using redux for state management, react-router for routing, tailwind css for styling, tinyMCE for rich text editing, html-react-parser for rendering html content, react-hooks-form for form handling and validation and appwrite for backend services
+- implemented user authentication with signup, login and logout features using appwrite
+- implemented creating, reading, updating and deleting blog posts with rich text content using tinyMCE and html-react-parser
+- implemented adding images to blog posts along with updating and deleting them using appwrite storage service
+- implemented complex routing with nested routes and route parameters using react-router
+- managed global state with redux for user authentication state
+- styled the app using tailwind css with the help of AI which provided me with responsive design and advanced animations and effects
+- it was a challenging project but I learnt a lot about integrating different libraries and services in a react application
+- overall it was a great learning experience and I feel more confident in building full-stack react applications
+
+---
+
+# Conclusion
+
+- This series of projects has significantly enhanced my understanding of React and its ecosystem.
+- I've gained hands-on experience with various tools and libraries commonly used in React development, such as Redux, React Router, Tailwind CSS, Appwrite and etc.
+- Each project presented unique challenges that helped me improve my problem-solving skills and deepen my knowledge of React concepts.
+- I'm now more confident in building complex React applications and integrating different technologies to create full-stack solutions.
+- I'm excited to continue learning and exploring more advanced topics in React development in the future.
+- now embark on building my own projects using the skills and knowledge I've acquired from these projects.
+
+# THANK YOU ✌️🌟
