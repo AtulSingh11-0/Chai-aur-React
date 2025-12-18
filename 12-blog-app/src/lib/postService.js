@@ -25,7 +25,7 @@ export class PostService {
    * Get all posts with optional filtering
    *
    * Retrieves a list of posts from the database. By default, only returns
-   * posts with ACTIVE status. You can provide custom queries to filter,
+   * posts with ACTIVE status. You can provide custom queries to search, filter,
    * sort, or paginate the results.
    *
    * @async
@@ -49,6 +49,14 @@ export class PostService {
    *   Query.equal("status", PostStatus.ACTIVE),
    *   Query.orderDesc("publishedDate"),
    *   Query.limit(10)
+   * ]);
+   *
+   * @example
+   * // Search active posts by title, and sort by published date
+   * const searchResults = await postService.getAllPosts([
+   *   Query.equal("status", PostStatus.ACTIVE),
+   *   Query.search("title", "JavaScript"),
+   *   Query.orderDesc("publishedDate")
    * ]);
    */
   async getAllPosts(queries = [Query.equal("status", PostStatus.ACTIVE)]) {
@@ -295,7 +303,6 @@ export class PostService {
   }
 
   // TODO: Add advanced post operations
-  // - searchPosts(searchTerm) - Full-text search in title and content
   // - getDraftPosts() - Get all draft posts for current user
 
   // TODO: Add validation methods
