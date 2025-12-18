@@ -17,7 +17,7 @@ export default function Button({
   return (
     <button
       type={type}
-      className={`px-5 py-2.5 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] ${variants[variant]} ${className}`}
+      className={`px-5 py-2.5 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] cursor-pointer ${variants[variant]} ${className}`}
       style={style}
       {...props}
     >
