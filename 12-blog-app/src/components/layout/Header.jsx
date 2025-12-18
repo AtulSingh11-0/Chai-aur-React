@@ -30,7 +30,7 @@ export default function Header() {
       name: 'Add Post',
       path: '/add-post',
       active: authStatus
-    }
+    },
   ]
 
   return (

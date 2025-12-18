@@ -1,44 +1,139 @@
 import React from 'react'
-import { Container, PostCard } from '../components'
+import { Container, PostCard, Input, Button } from '../components'
 import postService from '../lib/postService'
+import { Query } from 'appwrite';
+import { PostStatus } from '../constants/enums/postStatus';
 
 export default function AllPosts() {
+  const [searchTerm, setSearchTerm] = React.useState('');
   const [posts, setPosts] = React.useState([]);
-
-  React.useEffect(() => {
-    postService.getAllPosts()
-      .then(response => {
-        if (response && response.rows) {
-          setPosts(response.rows);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching posts:', error);
-      });
-  }, []);
-
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+  const [isSearching, setIsSearching] = React.useState(false);
 
+  // fetch all posts on mount
   React.useEffect(() => {
-    postService.getAllPosts()
-      .then(response => {
-        if (response && response.rows) {
-          setPosts(response.rows);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching posts:', error);
-      })
-      .finally(() => setLoading(false));
+    loadAllPosts();
   }, []);
+
+  const loadAllPosts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await postService.getAllPosts();
+      if (response && response.rows) {
+        setPosts(response.rows);
+      }
+    } catch (error) {
+      console.error("Error loading posts:", error);
+      setError("Failed to load posts. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) {
+      // if search is empty, reload all posts
+      setIsSearching(false);
+      loadAllPosts();
+      return;
+    }
+
+    setLoading(true);
+    setIsSearching(true);
+    setError(null);
+    try {
+      const queries = [
+        Query.equal("status", PostStatus.ACTIVE),
+        Query.search("title", searchTerm),
+        Query.orderDesc("publishedDate"),
+      ];
+
+      const response = await postService.getAllPosts(queries);
+      if (response && response.rows) {
+        setPosts(response.rows);
+      }
+    } catch (error) {
+      console.error("Error searching posts:", error);
+      setError("Search failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setIsSearching(false);
+    setError(null);
+    loadAllPosts();
+  };
 
   return (
     <div className='min-h-screen bg-[#f3e9d2] py-12'>
       <Container>
         <div className='mb-12'>
-          <h1 className='text-4xl font-bold text-[#114b5f] mb-2'>All Posts</h1>
-          <p className='text-lg text-gray-700'>Explore our latest articles</p>
+          <div className='mb-6'>
+            <h1 className='text-4xl font-bold text-[#114b5f] mb-2'>All Posts</h1>
+            <p className='text-lg text-gray-700'>
+              {isSearching ? `Search results for "${searchTerm}"` : 'Explore our latest articles'}
+            </p>
+          </div>
+
+          <div className='flex gap-3'>
+            <div className='flex-1 relative'>
+              <Input
+                type="text"
+                placeholder="Search posts by title..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              />
+              {searchTerm && (
+                <button
+                  onClick={handleClearSearch}
+                  className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#114b5f] transition-colors cursor-pointer'
+                  aria-label='Clear search'
+                  tabIndex={0}
+                >
+                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                  </svg>
+                </button>
+              )}
+            </div>
+            <Button
+              text="Search"
+              onClick={handleSearch}
+              variant="primary"
+            />
+          </div>
         </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className='mb-8 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <svg className='w-6 h-6 text-red-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+              </svg>
+              <div>
+                <p className='text-red-800 font-medium'>{error}</p>
+                <p className='text-red-600 text-sm mt-1'>Please check your connection and try again.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setError(null)}
+              className='text-red-500 hover:text-red-700 transition-colors'
+              aria-label='Dismiss error'
+              style={{ cursor: 'pointer' }}
+            >
+              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+              </svg>
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <div className='flex justify-center items-center py-20'>
