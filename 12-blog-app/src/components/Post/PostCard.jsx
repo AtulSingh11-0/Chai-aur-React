@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
 import storageService from '../../lib/storageService';
 
-export default function PostCard({ slug, title, featuredImage, authorId, publishedDate }) {
+export default function PostCard({ slug, title, featuredImage, authorId, publishedDate, readingTime }) {
   const userData = useSelector(state => state.auth.userData);
   const authorName = userData && authorId === userData.$id ? userData.name : 'Anonymous';
   return (
@@ -28,14 +28,22 @@ export default function PostCard({ slug, title, featuredImage, authorId, publish
         </div>
         <div className='p-5'>
           <h2 className='text-lg font-semibold text-[#114b5f] mb-3 line-clamp-2 group-hover:text-[#1a936f] transition-colors'>{title}</h2>
-          <div className='flex items-center justify-between text-sm text-gray-600'>
-            <div className='flex items-center gap-2'>
+          <div className='space-y-2'>
+            <div className='flex items-center gap-2 text-sm text-gray-600'>
               <div className='w-7 h-7 rounded-full bg-[#114b5f] flex items-center justify-center text-white text-xs font-medium'>
                 {authorName?.charAt(0).toUpperCase()}
               </div>
               <span className='font-medium'>{authorName}</span>
             </div>
-            <span className='text-xs'>{new Date(publishedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+            <div className='flex items-center justify-between text-xs text-gray-500'>
+              <span>{new Date(publishedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              <div className='flex items-center gap-1 px-2 py-1 bg-[#88d498] bg-opacity-20 rounded-full text-[#114b5f] font-medium'>
+                <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                </svg>
+                <span>{readingTime} min read</span>
+              </div>
+            </div>
           </div>
         </div>
       </article>

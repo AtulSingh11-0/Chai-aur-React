@@ -1,6 +1,7 @@
 import { ID, TablesDB, Client, Query } from "appwrite";
 import config from "../config/config";
 import { PostStatus } from "../constants/enums/postStatus";
+import { calculateReadingTime } from "../utils/readingTime";
 
 /**
  * Post Service
@@ -59,11 +60,15 @@ export class PostService {
    *   Query.orderDesc("publishedDate")
    * ]);
    */
-  async getAllPosts(queries = [Query.equal("status", PostStatus.ACTIVE)]) {
+  async getAllPosts(
+    queries = [Query.equal("status", PostStatus.ACTIVE)],
+    limit = 12,
+    offset = 0
+  ) {
     return await this.tablesDB.listRows({
       databaseId: config.appwriteDatabaseId,
       tableId: config.appwriteTableId,
-      queries,
+      queries: [...queries, Query.limit(limit), Query.offset(offset)],
     });
   }
 
@@ -199,6 +204,7 @@ export class PostService {
             status === PostStatus.ACTIVE
               ? new Date().toISOString()
               : publishedDate,
+          readingTime: calculateReadingTime(content),
         },
       });
     } catch (err) {
@@ -253,6 +259,9 @@ export class PostService {
             updatedData.status === PostStatus.ACTIVE
               ? new Date().toISOString()
               : updatedData.publishedDate,
+          readingTime: updatedData.content
+            ? calculateReadingTime(updatedData.content)
+            : undefined,
         },
       });
     } catch (err) {

@@ -5,10 +5,12 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { Button, Container } from '../components';
 import postService from '../lib/postService';
 import storageService from '../lib/storageService';
+import { calculateReadingTime } from '../utils/readingTime';
 
 export default function Post() {
   const [post, setPost] = React.useState(null);
   const [authorName, setAuthorName] = React.useState('Loading...');
+  const [readingTime, setReadingTime] = React.useState(0);
   const { slug } = useParams();
   const navigate = useNavigate();
 
@@ -22,6 +24,8 @@ export default function Post() {
       .then(post => {
         if (post) {
           setPost(post);
+          // Calculate reading time
+          setReadingTime(calculateReadingTime(post.content));
           // If current user is the author, use their name
           if (userData && post.authorId === userData.$id) {
             setAuthorName(userData.name);
@@ -51,7 +55,7 @@ export default function Post() {
           {/* Post Header Section */}
           <div className='mb-8'>
             <h1 className="text-4xl md:text-6xl font-bold text-[#114b5f] mb-4">{post.title}</h1>
-            <div className='flex items-center gap-4 text-gray-600 text-sm mb-6'>
+            <div className='flex flex-wrap items-center gap-4 text-gray-600 text-sm mb-6'>
               <div className='flex items-center gap-2'>
                 <div className='w-10 h-10 rounded-full bg-[#114b5f] flex items-center justify-center text-white font-semibold'>
                   {authorName?.charAt(0).toUpperCase()}
@@ -60,6 +64,13 @@ export default function Post() {
               </div>
               <span className='text-[#c6dabf]'>•</span>
               <span>{new Date(post.publishedDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+              <span className='text-[#c6dabf]'>•</span>
+              <div className='flex items-center gap-1.5 px-3 py-1.5 bg-[#88d498] bg-opacity-20 rounded-full text-[#114b5f] font-medium'>
+                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                </svg>
+                <span>{readingTime} min read</span>
+              </div>
             </div>
 
             {/* Author Actions */}
