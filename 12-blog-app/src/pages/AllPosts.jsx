@@ -5,30 +5,51 @@ import { Query } from 'appwrite';
 import { PostStatus } from '../constants/enums/postStatus';
 
 export default function AllPosts() {
+  const LIMIT = 12;
+
+  const [hasMore, setHasMore] = React.useState(true);
+  const [offset, setOffset] = React.useState(0);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [posts, setPosts] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [loadingMore, setLoadingMore] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [isSearching, setIsSearching] = React.useState(false);
 
   // fetch all posts on mount
   React.useEffect(() => {
-    loadAllPosts();
+    fetchPosts(true);
   }, []);
 
-  const loadAllPosts = async () => {
-    setLoading(true);
+  const fetchPosts = async (isNewSearch = false) => {
+    const currentOffset = isNewSearch ? 0 : offset;
+
+    // Use different loading states for initial load vs load more
+    if (isNewSearch) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
     setError(null);
+
     try {
-      const response = await postService.getAllPosts();
+      const response = await postService.getAllPosts([], LIMIT, currentOffset);
       if (response && response.rows) {
-        setPosts(response.rows);
+        if (isNewSearch) {
+          setPosts(response.rows);
+          setOffset(LIMIT);
+        } else {
+          setPosts(prevPosts => [...prevPosts, ...response.rows]);
+          setOffset(currentOffset + LIMIT);
+        }
+        // check if more posts to load
+        setHasMore(response.total > currentOffset + LIMIT);
       }
     } catch (error) {
-      console.error("Error loading posts:", error);
       setError("Failed to load posts. Please try again later.");
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -36,7 +57,7 @@ export default function AllPosts() {
     if (!searchTerm.trim()) {
       // if search is empty, reload all posts
       setIsSearching(false);
-      loadAllPosts();
+      fetchPosts(true);
       return;
     }
 
@@ -46,16 +67,17 @@ export default function AllPosts() {
     try {
       const queries = [
         Query.equal("status", PostStatus.ACTIVE),
-        Query.search("title", searchTerm),
+        Query.contains("title", searchTerm),
+        Query.limit(100),
         Query.orderDesc("publishedDate"),
       ];
 
       const response = await postService.getAllPosts(queries);
       if (response && response.rows) {
         setPosts(response.rows);
+        setHasMore(false); // Disable load more for search results
       }
     } catch (error) {
-      console.error("Error searching posts:", error);
       setError("Search failed. Please try again.");
     } finally {
       setLoading(false);
@@ -66,7 +88,8 @@ export default function AllPosts() {
     setSearchTerm('');
     setIsSearching(false);
     setError(null);
-    loadAllPosts();
+    setHasMore(true); // Re-enable load more when clearing search
+    fetchPosts(true);
   };
 
   return (
@@ -150,11 +173,33 @@ export default function AllPosts() {
             <p className='text-gray-600'>Check back later for new content</p>
           </div>
         ) : (
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-            {posts.map(post => (
-              <PostCard key={post.$id} {...post} />
-            ))}
-          </div>
+          <>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+              {posts.map(post => (
+                <PostCard key={post.$id} {...post} />
+              ))}
+            </div>
+
+            {/* Load More Section - Only show when not searching */}
+            {!isSearching && (
+              <div className='mt-10 flex justify-center'>
+                {loadingMore ? (
+                  <div className='flex items-center gap-2 px-6 py-3 text-[#114b5f]'>
+                    <div className='animate-spin rounded-full h-5 w-5 border-2 border-[#1a936f] border-t-transparent'></div>
+                    <span className='font-medium'>Loading more posts...</span>
+                  </div>
+                ) : hasMore ? (
+                  <Button
+                    text="Load More"
+                    onClick={() => fetchPosts()}
+                    variant="secondary"
+                  />
+                ) : (
+                  <p className='text-gray-600 font-medium'>You've reached the end!</p>
+                )}
+              </div>
+            )}
+          </>
         )}
       </Container>
     </div>
