@@ -1,8 +1,8 @@
-import React from 'react'
-import { Container, PostCard, Input, Button } from '../components'
-import postService from '../lib/postService'
 import { Query } from 'appwrite';
+import React from 'react';
+import { Button, Container, Input, PostCard } from '../components';
 import { PostStatus } from '../constants/enums/postStatus';
+import postService from '../lib/postService';
 
 export default function AllPosts() {
   const LIMIT = 12;
@@ -46,6 +46,7 @@ export default function AllPosts() {
         setHasMore(response.total > currentOffset + LIMIT);
       }
     } catch (error) {
+      console.log('Error fetching posts:', error);
       setError("Failed to load posts. Please try again later.");
     } finally {
       setLoading(false);
@@ -78,6 +79,7 @@ export default function AllPosts() {
         setHasMore(false); // Disable load more for search results
       }
     } catch (error) {
+      console.log('Error searching posts:', error);
       setError("Search failed. Please try again.");
     } finally {
       setLoading(false);
