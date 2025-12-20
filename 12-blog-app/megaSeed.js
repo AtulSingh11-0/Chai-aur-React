@@ -8,7 +8,7 @@ const APPWRITE_ENDPOINT = config.appwriteEndpoint;
 const APPWRITE_PROJECT_ID = config.appwriteProjectId;
 const APPWRITE_API_KEY = config.appwriteApiKey;
 const DATABASE_ID = config.appwriteDatabaseId;
-const TABLE_ID = config.appwriteTableId;
+const TABLE_ID = config.appwritePostsTableId;
 
 const client = new Client()
   .setEndpoint(APPWRITE_ENDPOINT)

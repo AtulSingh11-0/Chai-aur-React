@@ -8,7 +8,7 @@ const APPWRITE_ENDPOINT = config.appwriteEndpoint;
 const APPWRITE_PROJECT_ID = config.appwriteProjectId;
 const APPWRITE_API_KEY = config.appwriteApiKey;
 const DATABASE_ID = config.appwriteDatabaseId;
-const TABLE_ID = config.appwriteTableId;
+const TABLE_ID = config.appwritePostTableId;
 
 const client = new Client()
   .setEndpoint(APPWRITE_ENDPOINT)
@@ -192,43 +192,48 @@ const fetchDatabaseRows = async () => {
       tableId: TABLE_ID,
       queries: [Query.limit(100)],
     });
-    return response.rows;
+    return response;
   } catch (error) {
     console.error("❌ Error fetching rows:", error.message);
     return [];
   }
 };
 
+const updateLikesAndCommentsCount = async () => {
+  try {
+    const posts = await fetchDatabaseRows();
+
+    console.info(
+      `📊 Updating Likes and Comments Count for ${posts.total} posts...`
+    );
+
+    // let count = 0;
+    // for (const post of posts.rows) {
+    // const likesCount = Math.floor(Math.random() * 501); // 0 to 500
+    // const commentsCount = Math.floor(Math.random() * 201); // 0 to 200
+
+    // await tablesDb.updateRow({
+    //   databaseId: DATABASE_ID,
+    //   tableId: TABLE_ID,
+    //   rowId: post.$id,
+    //   data: {
+    //     likesCount,
+    //     commentsCount,
+    //   },
+    // });
+
+    // console.log(
+    //   `${++count}. ✅ Updated Post: "${
+    //     post.title
+    //   }" | Likes: ${likesCount}, Comments: ${commentsCount}`
+    // );
+    // }
+  } catch (err) {
+    console.error("Error updating likes and comments count:", err);
+    throw err;
+  }
+};
+
+// updateLikesAndCommentsCount();
+
 // seedDatabase();
-
-// await fetchDatabaseRows().then((rows) => {
-//   console.log("📊 Reading Time Analysis:");
-//   let count = 0;
-//   rows.forEach((row) => {
-//     const content = row.content || "";
-//     const readingTime = calculateReadingTime(content);
-
-//     // Update only if readingTime is not present
-//     if (!row.readingTime) {
-//       tablesDb
-//         .updateRow({
-//           databaseId: DATABASE_ID,
-//           tableId: TABLE_ID,
-//           rowId: row.$id,
-//           data: { readingTime },
-//         })
-//         .then(() => {
-//           console.log(
-//             `${count}📝 Updated Post: "${row.title}" | Calculated Reading Time: ${readingTime} min`
-//           );
-//         })
-//         .catch((error) => {
-//           console.error(
-//             `${count} ❌ Error updating reading time for "${row.title}":`,
-//             error.message
-//           );
-//         });
-//       count++;
-//     }
-//   });
-// });
