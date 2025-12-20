@@ -67,7 +67,7 @@ export class PostService {
   ) {
     return await this.tablesDB.listRows({
       databaseId: config.appwriteDatabaseId,
-      tableId: config.appwriteTableId,
+      tableId: config.appwritePostsTableId,
       queries: [...queries, Query.limit(limit), Query.offset(offset)],
     });
   }
@@ -101,7 +101,7 @@ export class PostService {
     try {
       return await this.tablesDB.getRow({
         databaseId: config.appwriteDatabaseId,
-        tableId: config.appwriteTableId,
+        tableId: config.appwritePostsTableId,
         rowId: postId,
       });
     } catch (err) {
@@ -132,7 +132,7 @@ export class PostService {
     try {
       const response = await this.tablesDB.listRows({
         databaseId: config.appwriteDatabaseId,
-        tableId: config.appwriteTableId,
+        tableId: config.appwritePostsTableId,
         queries: [Query.equal("slug", slug), Query.limit(1)],
       });
 
@@ -191,7 +191,7 @@ export class PostService {
     try {
       return await this.tablesDB.createRow({
         databaseId: config.appwriteDatabaseId,
-        tableId: config.appwriteTableId,
+        tableId: config.appwritePostsTableId,
         rowId: ID.unique(),
         data: {
           slug,
@@ -251,7 +251,7 @@ export class PostService {
     try {
       return await this.tablesDB.updateRow({
         databaseId: config.appwriteDatabaseId,
-        tableId: config.appwriteTableId,
+        tableId: config.appwritePostsTableId,
         rowId: postId,
         data: {
           ...updatedData,
@@ -302,7 +302,7 @@ export class PostService {
     try {
       return await this.tablesDB.deleteRow({
         databaseId: config.appwriteDatabaseId,
-        tableId: config.appwriteTableId,
+        tableId: config.appwritePostsTableId,
         rowId: postId,
       });
     } catch (err) {
