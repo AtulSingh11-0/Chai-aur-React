@@ -12,3 +12,6 @@ export { RTE } from "./RTE";
 
 // Post components
 export { PostForm, PostCard } from "./Post";
+
+// Comment components
+export { Comment, CommentSection } from "./Comment";

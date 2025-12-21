@@ -1,11 +1,13 @@
+import { Query } from 'appwrite';
 import parse from 'html-react-parser';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router';
-import { Button, Container, Input } from '../components';
+import { Button, Container } from '../components';
+import { CommentSection } from '../components/Comment';
+import engagementService from '../lib/engagementService';
 import postService from '../lib/postService';
 import storageService from '../lib/storageService';
-import engagementService from '../lib/engagementService';
 import { calculateReadingTime } from '../utils/readingTime';
 
 export default function Post() {
@@ -15,6 +17,11 @@ export default function Post() {
   const [isLiked, setIsLiked] = React.useState(false);
   const [isLiking, setIsLiking] = React.useState(false);
   const [showCopied, setShowCopied] = React.useState(false);
+  const [comments, setComments] = React.useState([]);
+  const [isLoadingComments, setIsLoadingComments] = React.useState(true);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+
   const { slug } = useParams();
   const navigate = useNavigate();
 
@@ -80,27 +87,52 @@ export default function Post() {
   }
 
   React.useEffect(() => {
-    if (!slug) navigate('/');
-    postService.getPostBySlug(slug)
-      .then(post => {
-        if (post) {
-          setPost(post);
-          // Calculate reading time
-          setReadingTime(calculateReadingTime(post.content));
-          // If current user is the author, use their name
-          if (userData && post.authorId === userData.$id) {
-            setAuthorName(userData.name);
-          } else {
-            setAuthorName('Anonymous');
-          }
-          // Check if user has liked this post
-          if (userData) {
-            checkIfUserLiked(post.$id, userData.$id);
-          }
+    if (!slug) {
+      navigate('/');
+      return;
+    }
+
+    const fetchPostData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const fetchedPost = await postService.getPostBySlug(slug);
+
+        if (!fetchedPost) {
+          setError({ type: 'not-found', message: 'Post not found' });
+          return;
         }
-        else navigate('/'); // Redirect if post not found
-      })
-      .catch(() => navigate('/'));
+
+        setPost(fetchedPost);
+        setReadingTime(calculateReadingTime(fetchedPost.content));
+
+        // Set author name
+        if (userData && fetchedPost.authorId === userData.$id) {
+          setAuthorName(userData.name);
+        } else {
+          setAuthorName('Anonymous');
+        }
+
+        // Check if user has liked this post
+        if (userData) {
+          checkIfUserLiked(fetchedPost.$id, userData.$id);
+        }
+
+        // Load comments
+        setIsLoadingComments(true);
+        const fetchedComments = await engagementService.fetchComments(fetchedPost.$id);
+        setComments(fetchedComments);
+      } catch (error) {
+        console.error('Error loading post:', error);
+        setError({ type: 'server-error', message: error.message || 'Failed to load post' });
+      } finally {
+        setIsLoading(false);
+        setIsLoadingComments(false);
+      }
+    };
+
+    fetchPostData();
   }, [slug, navigate, userData]);
 
   const deletePost = async () => {
@@ -113,6 +145,157 @@ export default function Post() {
       });
   };
 
+  const handleCommentsSorting = async (sortOrder) => {
+    console.log('Sorting comments by:', sortOrder);
+    setIsLoadingComments(true);
+    let queries = [];
+    if (sortOrder === 'newest first') {
+      queries = [Query.orderDesc('$createdAt')];
+    } else if (sortOrder === 'oldest first') {
+      queries = [Query.orderAsc('$createdAt')];
+    }
+    const fetchedComments = await engagementService.fetchComments(post.$id, queries);
+    setComments(fetchedComments);
+    setIsLoadingComments(false);
+  }
+
+  const handleCommentSubmit = async (commentText) => {
+    if (!commentText.trim() || !userData) return;
+
+    try {
+      const { newComment, updatedCommentsCount } = await engagementService.addComment(
+        post,
+        userData.$id,
+        commentText
+      );
+
+      // Add comment to the top of the list (since we order by desc)
+      setComments(prevComments => [newComment, ...prevComments]);
+
+      // Update post's comment count
+      setPost(prevPost => ({
+        ...prevPost,
+        commentsCount: updatedCommentsCount,
+      }));
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      throw error;
+    }
+  };
+
+  const handleCommentEdit = async (commentId, newText) => {
+    if (!newText.trim()) return;
+
+    try {
+      await engagementService.updateComment(commentId, newText);
+      setComments(prevComments =>
+        prevComments.map(comment =>
+          comment.$id === commentId
+            ? { ...comment, commentText: newText }
+            : comment
+        )
+      );
+    } catch (error) {
+      console.error('Error updating comment:', error);
+    }
+  };
+
+  const handleCommentDelete = async (commentId) => {
+    try {
+      const updatedCommentsCount = await engagementService.deleteComment(post, commentId);
+      setComments(prevComments =>
+        prevComments.filter(comment => comment.$id !== commentId)
+      );
+      setPost(prevPost => ({
+        ...prevPost,
+        commentsCount: updatedCommentsCount,
+      }));
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+    }
+  };
+
+  // loading state
+  if (isLoading) {
+    return (
+      <div className='min-h-screen bg-[#f3e9d2] flex items-center justify-center py-12'>
+        <Container>
+          <div className='max-w-2xl mx-auto text-center'>
+            <div className='mb-8'>
+              <div className='animate-spin rounded-full h-16 w-16 border-4 border-[#c6dabf] border-t-[#1a936f] mx-auto'></div>
+            </div>
+            <h2 className='text-2xl font-bold text-[#114b5f] mb-2'>Loading Post</h2>
+            <p className='text-gray-600'>Please wait while we fetch your content...</p>
+          </div>
+        </Container>
+      </div>
+    );
+  }
+
+  // error state - 404 Not Found
+  if (error?.type === 'not-found') {
+    return (
+      <div className='min-h-screen bg-[#f3e9d2] flex items-center justify-center py-12'>
+        <Container>
+          <div className='max-w-2xl mx-auto text-center'>
+            <div className='mb-6'>
+              <div className='w-32 h-32 mx-auto mb-6 bg-[#88d498] bg-opacity-20 rounded-full flex items-center justify-center'>
+                <svg className='w-20 h-20 text-[#114b5f]' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                </svg>
+              </div>
+              <h1 className='text-6xl font-bold text-[#114b5f] mb-4'>404</h1>
+              <h2 className='text-3xl font-bold text-[#114b5f] mb-4'>Post Not Found</h2>
+              <p className='text-gray-600 mb-8'>The post you're looking for doesn't exist or may have been removed.</p>
+              <div className='flex gap-4 justify-center'>
+                <Link to='/'>
+                  <Button text='Go Home' variant='primary' />
+                </Link>
+                <Link to='/all-posts'>
+                  <Button text='Browse Posts' variant='secondary' />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </div>
+    );
+  }
+
+  // error state - 500 Server Error
+  if (error?.type === 'server-error') {
+    return (
+      <div className='min-h-screen bg-[#f3e9d2] flex items-center justify-center py-12'>
+        <Container>
+          <div className='max-w-2xl mx-auto text-center'>
+            <div className='mb-6'>
+              <div className='border-4 border-red-600 w-32 h-32 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center'>
+                <svg className='w-20 h-20 text-red-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' />
+                </svg>
+              </div>
+              <h1 className='text-6xl font-bold text-[#114b5f] mb-4'>500</h1>
+              <h2 className='text-3xl font-bold text-[#114b5f] mb-4'>Something Went Wrong</h2>
+              <p className='text-gray-600 mb-2'>We encountered an error while loading the post.</p>
+              <p className='text-sm text-gray-500 mb-8'>{error.message}</p>
+              <div className='flex gap-4 justify-center'>
+                <Button
+                  text='Try Again'
+                  variant='primary'
+                  onClick={() => window.location.reload()}
+                />
+                <Link to='/'>
+                  <Button text='Go Home' variant='secondary' />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </div>
+    );
+  }
+
+  // main post content
   return post ? (
     <div className='min-h-screen bg-[#f3e9d2] py-12'>
       <Container>
@@ -244,8 +427,29 @@ export default function Post() {
               )}
             </div>
           </div>
+
+          {/* Comments Section */}
+          <CommentSection
+            post={post}
+            userData={userData}
+            comments={comments}
+            isLoading={isLoadingComments}
+            onCommentSubmit={handleCommentSubmit}
+            onCommentEdit={handleCommentEdit}
+            onCommentDelete={handleCommentDelete}
+            onSortChange={handleCommentsSorting}
+          />
         </div>
       </Container>
     </div>
-  ) : null;
+  ) : (
+    // Fallback for unexpected null state
+    <div className='min-h-screen bg-[#f3e9d2] flex items-center justify-center'>
+      <Container>
+        <div className='text-center'>
+          <p className='text-gray-600'>Loading...</p>
+        </div>
+      </Container>
+    </div>
+  );
 }
