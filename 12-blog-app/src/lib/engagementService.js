@@ -118,21 +118,19 @@ export class EngagementService {
         },
       });
 
-      console.log("New comment added:", newComment); // for debugging
-
       // 2. increment comment count on the post
-      const updatedCommentCount = (post.commentCount || 0) + 1;
+      const updatedCommentsCount = (post.commentsCount || 0) + 1;
 
       await this.tablesDB.updateRow({
         databaseId: config.appwriteDatabaseId,
         tableId: config.appwritePostsTableId,
         rowId: post.$id,
         data: {
-          commentCount: updatedCommentCount,
+          commentsCount: updatedCommentsCount,
         },
       });
 
-      return { newComment, updatedCommentCount };
+      return { newComment, updatedCommentsCount };
     } catch (err) {
       console.error("Error adding comment:", err);
       throw err;
@@ -140,13 +138,13 @@ export class EngagementService {
   }
 
   // fetch comments for a post
-  async fetchComments(postId) {
+  async fetchComments(postId, queries = []) {
     try {
       // fetch comments for the given postId, ordered by creation date descending
       const comments = await this.tablesDB.listRows({
         databaseId: config.appwriteDatabaseId,
         tableId: config.appwriteCommentsTableId,
-        queries: [Query.equal("postId", postId), Query.orderDesc("$createdAt")],
+        queries: [Query.equal("postId", postId), ...queries],
       });
 
       return comments.rows; // return the list of comments
@@ -179,27 +177,25 @@ export class EngagementService {
   async deleteComment(post, commentId) {
     try {
       // delete the comment
-      const deletedComment = await this.tablesDB.deleteRow({
+      await this.tablesDB.deleteRow({
         databaseId: config.appwriteDatabaseId,
         tableId: config.appwriteCommentsTableId,
         rowId: commentId,
       });
 
-      console.log("Deleted comment:", deletedComment); // for debugging
-
       // decrement comment count on the post
-      const updatedCommentCount = Math.max(0, (post.commentCount || 0) - 1);
+      const updatedCommentsCount = Math.max(0, (post.commentsCount || 0) - 1);
 
       await this.tablesDB.updateRow({
         databaseId: config.appwriteDatabaseId,
         tableId: config.appwritePostsTableId,
         rowId: post.$id,
         data: {
-          commentCount: updatedCommentCount,
+          commentsCount: updatedCommentsCount,
         },
       });
 
-      return { deletedComment, updatedCommentCount };
+      return updatedCommentsCount;
     } catch (err) {
       console.error("Error deleting comment:", err);
       throw err;
