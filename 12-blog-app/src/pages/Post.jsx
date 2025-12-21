@@ -146,7 +146,7 @@ export default function Post() {
   };
 
   const handleCommentsSorting = async (sortOrder) => {
-    console.log('Sorting comments by:', sortOrder);
+
     setIsLoadingComments(true);
     let queries = [];
     if (sortOrder === 'newest first') {

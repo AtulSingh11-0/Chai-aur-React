@@ -1,6 +1,7 @@
 import { Client, TablesDB, Query, ID } from "node-appwrite";
 import config from "./src/config/config";
 import { PostStatus } from "./src/constants/enums/postStatus";
+import engagementService from "./src/lib/engagementService";
 import { calculateReadingTime } from "./src/utils/readingTime";
 
 // --- CONFIGURATION ---
@@ -142,6 +143,29 @@ const dummyPosts = [
   },
 ];
 
+const commentTexts = [
+  "Great post! Really helped me understand the topic better.",
+  "I disagree with some points, but overall a good read.",
+  "Can you provide more examples on this subject?",
+  "This was very insightful, thank you for sharing!",
+  "Looking forward to your next article!",
+  "I found a typo in the third paragraph.",
+  "How does this compare to other similar technologies?",
+  "This topic is quite complex, but you explained it well.",
+  "I appreciate the depth of research that went into this.",
+  "Could you recommend further reading on this?",
+  "I learned something new today, thanks!",
+  "This article changed my perspective on the subject.",
+  "I have a question about one of the concepts you mentioned.",
+  "Thanks for breaking this down so clearly!",
+  "I think you missed an important aspect of the topic.",
+  "This is exactly what I was looking for!",
+  "Your writing style makes complex topics easy to understand.",
+  "I shared this with my team, they found it useful too.",
+  "What are the practical applications of this knowledge?",
+  "This is a must-read for anyone interested in the field.",
+];
+
 // --- LOGIC ---
 const slugify = (text) => {
   return text
@@ -233,6 +257,88 @@ const updateLikesAndCommentsCount = async () => {
     throw err;
   }
 };
+
+const seedCommentsTable = async () => {
+  // post id
+  const post = {
+    $createdAt: "2025-12-17T11:38:54.679+00:00",
+    $databaseId: "6936e572000c85c11ecc",
+    $id: "6942964e000c1a92565a",
+    $permissions:
+      Array(3)[
+        ('read("user:694282d60009510d48a1")',
+        'update("user:694282d60009510d48a1")',
+        'delete("user:694282d60009510d48a1")')
+      ],
+    $sequence: 3,
+    $tableId: "article",
+    $updatedAt: "2025-12-20T13:49:37.126+00:00",
+    authorId: "694282d60009510d48a1",
+    commentsCount: 161,
+    content: "<p>wewfg er erer erger er er rre er er ererg ererg</p>",
+    featuredImage: "6942964c000797851a39",
+    likesCount: 203,
+    publishedDate: "2025-12-17T11:43:01.961+00:00",
+    readingTime: 1,
+    slug: "erege-fr-gre-ge-g-ge",
+    status: "active",
+    title: "erege fr gre ge g ge ",
+  };
+  let count = 1;
+
+  console.log("🚀 Starting Seeding Comments Process...");
+
+  for (const text of commentTexts) {
+    try {
+      const response = await tablesDb.createRow({
+        databaseId: config.appwriteDatabaseId,
+        tableId: config.appwriteCommentsTableId,
+        rowId: ID.unique(),
+        data: {
+          postId: post.$id,
+          userId: authorIds[Math.floor(Math.random() * authorIds.length)],
+          commentText: text,
+        },
+      });
+
+      console.log(`${count}. ✅ Seeded comment: ${text}`);
+    } catch (err) {
+      console.error(`${count} ❌ Failed to seed comment: ${text}`, err.message);
+    }
+    count++;
+  }
+};
+
+const updateUsernamesInComments = async () => {
+  try {
+    const comments = await tablesDb.listRows({
+      databaseId: config.appwriteDatabaseId,
+      tableId: config.appwriteCommentsTableId,
+      queries: [Query.limit(100)],
+    });
+
+    console.info(`📊 Updating usernames for ${comments.total} comments...`);
+
+    for (const comment of comments.rows) {
+      await tablesDb.updateRow({
+        databaseId: config.appwriteDatabaseId,
+        tableId: config.appwriteCommentsTableId,
+        rowId: comment.$id,
+        data: {
+          username: `Anonymous` + `_${comment.userId.substring(15, 20)}`,
+        },
+      });
+    }
+    console.log("✅ Usernames updated successfully in comments.");
+  } catch (err) {
+    console.error("Error updating usernames in comments:", err);
+    throw err;
+  }
+};
+
+// updateUsernamesInComments();
+
+// seedCommentsTable();
 
 // updateLikesAndCommentsCount();
 
