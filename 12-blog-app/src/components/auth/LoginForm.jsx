@@ -1,30 +1,53 @@
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useDispatch } from 'react-redux';
-import { Link, useNavigate } from 'react-router';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useLocation, useNavigate } from 'react-router';
 import authService from '../../lib/authService';
 import { login } from '../../store/authSlice';
 import { Button, Input, Logo } from '../index';
 
 export default function LoginForm() {
+  const [isLoading, setIsLoading] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
+  const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
+
+  // redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const onSubmit = async (data) => {
+    setIsLoading(true);
     try {
       const response = await authService.login(data);
       if (response) {
         const currentUser = await authService.getCurrentUser();
+
+        // preserve the full path including pathname and search params
+        const from = location.state?.from;
+        const redirectPath = from ? `${from.pathname}${from.search || ''}` : '/';
+
+        // dispatch login state update
         dispatch(login(currentUser));
-        navigate('/');
+
+        // small delay to ensure state is updated before navigation
+        setTimeout(() => {
+          navigate(redirectPath, { replace: true });
+        }, 0);
       }
     } catch (error) {
       console.error("Error submitting form: ", error);
       alert("Login failed : " + error.message);
+      setIsLoading(false);
     }
   }
 
@@ -77,7 +100,19 @@ export default function LoginForm() {
         </div>
 
         {/* Right Panel - Form */}
-        <div className='flex items-center justify-center bg-white p-6 lg:p-10'>
+        <div className='flex items-center justify-center bg-white p-6 lg:p-10 relative'>
+          {/* Loading Overlay */}
+          {isLoading && (
+            <div className='absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-r-3xl'>
+              <div className='flex flex-col items-center gap-3'>
+                <svg className="animate-spin h-12 w-12 text-[#1a936f]" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p className='text-[#114b5f] font-medium'>Signing in...</p>
+              </div>
+            </div>
+          )}
           <div className='w-full max-w-md'>
             {/* Logo - visible on mobile only */}
             <div className="mb-6 flex justify-center lg:hidden">
@@ -93,7 +128,7 @@ export default function LoginForm() {
             </p>
 
             <form onSubmit={handleSubmit(onSubmit)} className='mt-8'>
-              <div className='space-y-6'>
+              <fieldset disabled={isLoading} className='space-y-6'>
                 <div>
                   <Input
                     label="Email"
@@ -134,8 +169,9 @@ export default function LoginForm() {
                   type="submit"
                   variant="primary"
                   className="w-full"
+                  disabled={isLoading}
                 />
-              </div>
+              </fieldset>
             </form>
 
             <p className="mt-6 text-center text-sm text-gray-600">
