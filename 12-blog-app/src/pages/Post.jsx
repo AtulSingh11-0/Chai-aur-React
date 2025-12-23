@@ -3,7 +3,7 @@ import parse from 'html-react-parser';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router';
-import { Button, Container } from '../components';
+import { Button, Container, PostDetailSkeleton } from '../components';
 import { CommentSection } from '../components/Comment';
 import engagementService from '../lib/engagementService';
 import postService from '../lib/postService';
@@ -217,19 +217,7 @@ export default function Post() {
 
   // loading state
   if (isLoading) {
-    return (
-      <div className='min-h-screen bg-[#f3e9d2] flex items-center justify-center py-12'>
-        <Container>
-          <div className='max-w-2xl mx-auto text-center'>
-            <div className='mb-8'>
-              <div className='animate-spin rounded-full h-16 w-16 border-4 border-[#c6dabf] border-t-[#1a936f] mx-auto'></div>
-            </div>
-            <h2 className='text-2xl font-bold text-[#114b5f] mb-2'>Loading Post</h2>
-            <p className='text-gray-600'>Please wait while we fetch your content...</p>
-          </div>
-        </Container>
-      </div>
-    );
+    return <PostDetailSkeleton />;
   }
 
   // error state - 404 Not Found
@@ -345,6 +333,7 @@ export default function Post() {
                   src={storageService.getFilePreviewURL(post.featuredImage)}
                   alt={post.title}
                   className='w-full h-96 object-cover'
+                  loading='lazy'
                   onError={(e) => {
                     e.target.style.display = 'none';
                   }}

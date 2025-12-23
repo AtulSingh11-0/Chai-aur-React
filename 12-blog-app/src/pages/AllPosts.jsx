@@ -1,6 +1,7 @@
 import { Query } from 'appwrite';
 import React from 'react';
-import { Button, Container, Input, PostCard } from '../components';
+import { Link } from 'react-router';
+import { Button, Container, Input, PostCard, PostCardSkeleton } from '../components';
 import { PostStatus } from '../constants/enums/postStatus';
 import postService from '../lib/postService';
 
@@ -161,18 +162,62 @@ export default function AllPosts() {
         )}
 
         {loading ? (
-          <div className='flex justify-center items-center py-20'>
-            <div className='animate-spin rounded-full h-12 w-12 border-2 border-[#1a936f] border-t-transparent'></div>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+            {[...Array(6)].map((_, index) => (
+              <PostCardSkeleton key={index} />
+            ))}
           </div>
         ) : posts.length === 0 ? (
           <div className='text-center py-20'>
-            <div className='text-[#c6dabf] mb-4'>
+            <div className='text-[#c6dabf] mb-6'>
               <svg className='w-24 h-24 mx-auto' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                {isSearching ? (
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
+                ) : (
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                )}
               </svg>
             </div>
-            <h3 className='text-2xl font-semibold text-[#114b5f] mb-2'>No posts yet</h3>
-            <p className='text-gray-600'>Check back later for new content</p>
+            {isSearching ? (
+              <>
+                <h3 className='text-2xl font-semibold text-[#114b5f] mb-3'>No Results Found</h3>
+                <p className='text-gray-600 mb-6'>
+                  We couldn't find any posts matching "<span className='font-semibold text-[#114b5f]'>{searchTerm}</span>"
+                </p>
+                <div className='flex flex-col sm:flex-row gap-3 justify-center items-center'>
+                  <Button
+                    text="Clear Search"
+                    onClick={handleClearSearch}
+                    variant="primary"
+                  />
+                  <Link to='/add-post'>
+                    <Button
+                      text="Create New Post"
+                      variant="secondary"
+                    />
+                  </Link>
+                </div>
+                <div className='mt-8 text-sm text-gray-600'>
+                  <p className='mb-2'>Try:</p>
+                  <ul className='space-y-1'>
+                    <li>• Using different keywords</li>
+                    <li>• Checking your spelling</li>
+                    <li>• Using more general terms</li>
+                  </ul>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className='text-2xl font-semibold text-[#114b5f] mb-3'>No Posts Yet</h3>
+                <p className='text-gray-600 mb-6'>"No content available at the moment. Check back later!"</p>
+                <Link to='/add-post'>
+                  <Button
+                    text="Create Your First Post"
+                    variant="primary"
+                  />
+                </Link>
+              </>
+            )}
           </div>
         ) : (
           <>
