@@ -194,6 +194,7 @@ export default function PostForm({ post }) {
                   src={storageService.getFilePreviewURL(post.featuredImage)}
                   alt={post.title}
                   className="w-full h-auto rounded-lg border border-[#c6dabf]"
+                  loading='lazy'
                 />
               </div>
             )}

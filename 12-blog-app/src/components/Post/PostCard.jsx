@@ -20,6 +20,7 @@ export default function PostCard({ slug, title, featuredImage, authorId, publish
                 onError={(e) => {
                   e.target.style.display = 'none';
                 }}
+                loading='lazy'
               />
               <div className='absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent'></div>
               <h2 className='absolute bottom-4 left-4 right-4 text-xl font-bold text-white line-clamp-2 drop-shadow-lg leading-tight'>
