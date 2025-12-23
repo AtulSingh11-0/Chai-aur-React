@@ -15,3 +15,11 @@ export { PostForm, PostCard } from "./Post";
 
 // Comment components
 export { Comment, CommentSection } from "./Comment";
+
+// Skeleton components
+export {
+  SkeletonBase,
+  PostCardSkeleton,
+  PostDetailSkeleton,
+  PostFormSkeleton,
+} from "./Skeleton";
