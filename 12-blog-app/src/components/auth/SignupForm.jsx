@@ -40,7 +40,7 @@ export default function SignupForm() {
         const redirectPath = from ? `${from.pathname}${from.search || ''}` : '/';
 
         // dispatch login state update
-        dispatch(login(currentUser));
+        dispatch(login({ userData: currentUser }));
 
         // small delay to ensure state is updated before navigation
         setTimeout(() => {
