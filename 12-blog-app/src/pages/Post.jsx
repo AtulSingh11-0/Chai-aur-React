@@ -432,13 +432,6 @@ export default function Post() {
       </Container>
     </div>
   ) : (
-    // Fallback for unexpected null state
-    <div className='min-h-screen bg-[#f3e9d2] flex items-center justify-center'>
-      <Container>
-        <div className='text-center'>
-          <p className='text-gray-600'>Loading...</p>
-        </div>
-      </Container>
-    </div>
+    <PostDetailSkeleton />// Fallback for unexpected null state
   );
 }
