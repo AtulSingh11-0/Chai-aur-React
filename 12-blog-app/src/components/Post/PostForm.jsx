@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
@@ -10,6 +10,7 @@ import { Button, Input, RTE, Select } from '../index';
 export default function PostForm({ post }) {
   const navigate = useNavigate();
   const userData = useSelector(state => state.auth.userData);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     handleSubmit,
@@ -42,56 +43,64 @@ export default function PostForm({ post }) {
   }, []);
 
   const submit = async (data) => {
-    // if post exists, we're editing it, otherwise creating new
-    if (post) {
-      // editing existing post
+    setIsSubmitting(true);
 
-      // 1. check if featured image was updated (FileList means user selected new file)
-      const isNewImageSelected = data.featuredImage instanceof FileList && data.featuredImage.length > 0;
-      const featuredImage = isNewImageSelected ? await storageService.createFile(data.featuredImage[0]) : null;
+    try {
+      // if post exists, we're editing it, otherwise creating new
+      if (post) {
+        // editing existing post
 
-      // 2. prepare updated post data
-      const updatedPost = {
-        ...post,
-        title: data.title,
-        slug: data.slug,
-        content: data.content,
-        status: data.status,
-        featuredImage: featuredImage ? featuredImage.$id : post.featuredImage,
-      };
-      const updatedPostFromDB = await postService.updatePost(post.$id, updatedPost);
+        // 1. check if featured image was updated (FileList means user selected new file)
+        const isNewImageSelected = data.featuredImage instanceof FileList && data.featuredImage.length > 0;
+        const featuredImage = isNewImageSelected ? await storageService.createFile(data.featuredImage[0]) : null;
 
-      // 3. redirect to updated post page
-      if (updatedPostFromDB) {
-        navigate(`/post/${updatedPostFromDB.slug}`);
-      }
-    } else {
-      // creating new post
-
-      // 1. upload featured image
-      const featuredImage = data.featuredImage[0] ? await storageService.createFile(data.featuredImage[0]) : null;
-
-      // 2. if image upload was successful, create new post
-      if (featuredImage) {
-        const fileId = featuredImage.$id; // get uploaded file ID
-        data.featuredImage = fileId; // replace file object with file ID
-
-        const newPost = {
-          ...data,
+        // 2. prepare updated post data
+        const updatedPost = {
+          ...post,
           title: data.title,
           slug: data.slug,
           content: data.content,
           status: data.status,
-          featuredImage: fileId,
-          authorId: userData.$id,
+          featuredImage: featuredImage ? featuredImage.$id : post.featuredImage,
         };
-        const newPostFromDB = await postService.createPost(newPost);
+        const updatedPostFromDB = await postService.updatePost(post.$id, updatedPost);
 
-        // 3. redirect to new post page
-        if (newPostFromDB) {
-          navigate(`/post/${newPostFromDB.slug}`);
+        // 3. redirect to updated post page
+        if (updatedPostFromDB) {
+          navigate(`/post/${updatedPostFromDB.slug}`);
+        }
+      } else {
+        // creating new post
+
+        // 1. upload featured image
+        const featuredImage = data.featuredImage[0] ? await storageService.createFile(data.featuredImage[0]) : null;
+
+        // 2. if image upload was successful, create new post
+        if (featuredImage) {
+          const fileId = featuredImage.$id; // get uploaded file ID
+          data.featuredImage = fileId; // replace file object with file ID
+
+          const newPost = {
+            ...data,
+            title: data.title,
+            slug: data.slug,
+            content: data.content,
+            status: data.status,
+            featuredImage: fileId,
+            authorId: userData.$id,
+          };
+          const newPostFromDB = await postService.createPost(newPost);
+
+          // 3. redirect to new post page
+          if (newPostFromDB) {
+            navigate(`/post/${newPostFromDB.slug}`);
+          }
         }
       }
+    } catch (error) {
+      console.error('Error submitting post:', error);
+      // Keep form enabled so user can try again
+      setIsSubmitting(false);
     }
   }
 
@@ -106,6 +115,27 @@ export default function PostForm({ post }) {
 
   return (
     <div className='min-h-screen bg-[#f3e9d2] py-12 px-4'>
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div className='fixed inset-0 bg-[#114b5f]/30 backdrop-blur-md z-50 flex items-center justify-center'>
+          <div className='relative bg-white/90 backdrop-blur-2xl rounded-xl p-8 max-w-sm mx-4 text-center shadow-2xl border border-white/20'>
+            {/* Subtle gradient overlay for depth */}
+            <div className='absolute inset-0 bg-linear-to-br from-white/40 to-transparent rounded-xl pointer-events-none'></div>
+
+            {/* Content */}
+            <div className='relative z-10'>
+              <div className='w-16 h-16 mx-auto mb-4 border-4 border-[#1a936f] border-t-transparent rounded-full animate-spin'></div>
+              <h3 className='text-xl font-bold text-[#114b5f] mb-2'>
+                {post ? 'Updating Post...' : 'Publishing Post...'}
+              </h3>
+              <p className='text-gray-600 text-sm'>
+                Please wait while we {post ? 'save your changes' : 'create your post'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <form
         onSubmit={handleSubmit(submit)}
         className="max-w-5xl mx-auto"
@@ -205,7 +235,8 @@ export default function PostForm({ post }) {
                 type="submit"
                 variant="primary"
                 className="w-full"
-                text={post ? "Update Post" : "Publish Post"}
+                text={isSubmitting ? (post ? "Updating..." : "Publishing...") : (post ? "Update Post" : "Publish Post")}
+                disabled={isSubmitting}
               />
             </div>
           </div>
