@@ -165,10 +165,17 @@ class StorageService {
    */
   async createFile(file, customFileId = null, onProgress = null) {
     try {
+      let fileToUpload = file; // we will use this variable to hold the file to upload and let the original file unchanged
+
+      // if the file is an image, compress it to WebP before uploading
+      if (file.type.startsWith("image/")) {
+        fileToUpload = await this.compressImageToWebP(file);
+      }
+
       return await this.storage.createFile({
         bucketId: config.appwriteBucketId,
         fileId: customFileId || ID.unique(),
-        file,
+        file: fileToUpload,
         permissions: [
           'read("any")', // Allow anyone to read/view the file (for public images)
         ],
@@ -235,6 +242,90 @@ class StorageService {
 
       throw err;
     }
+  }
+
+  /**
+   */
+  async compressImageToWebP(
+    file,
+    maxWidth = 1920,
+    maxHeight = 1080,
+    quality = 0.85
+  ) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        const img = new Image();
+
+        img.onload = () => {
+          // calculate new dimensions of the image while maintainting its aspect ratio
+          let width = img.width; // setting original width
+          let height = img.height; // setting original height
+
+          // resizing the image if it exceeds max dimensions
+          if (width > maxWidth || height > maxHeight) {
+            const aspectRatio = width / height; // calculating aspect ratio
+
+            // if width is greater than height, scale width to maxWidth and adjust height accordingly
+            if (width > height) {
+              width = maxWidth; // setting width to maxWidth
+              height = width / aspectRatio; // adjusting height based on aspect ratio
+            } else {
+              // if height is greater than width, scale height to maxHeight and adjust width accordingly
+              height = maxHeight; // setting height to maxHeight
+              width = height * aspectRatio; // adjusting width based on aspect ratio
+            }
+          }
+
+          // create a canvas to draw the resized image
+          const canvas = document.createElement("canvas");
+          canvas.width = width; // setting canvas width
+          canvas.height = height; // setting canvas height
+
+          // set canvas context and draw the image, '2d' context is used for drawing 2D shapes and images
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height); // drawing the image on canvas, scaled to new dimensions
+
+          // convert the canvas to a Blob in WebP format with specified quality
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                // check if blob creation was successful
+                reject(new Error("Failed to compress image"));
+                return; // throw an error and exit if blob is null
+              }
+
+              const originalFileName = file.name.replace(/\.[^/.]+$/, ""); // removing original file extension
+
+              const webpFile = new File( // creating new File object in WebP format
+                [blob], // passing the blob as array, since File constructor expects an array of parts
+                `${originalFileName}.webp`, // setting new file name with .webp extension
+                { type: "image/webp" } // setting MIME type to image/webp
+              );
+
+              resolve(webpFile); // resolving the promise with the new WebP file
+            },
+            "image/webp", // specifying the output format as WebP
+            quality // setting the quality of the output image
+          );
+        };
+
+        // if image fails to load, reject the promise with an error
+        img.onerror = (error) => {
+          reject(
+            new Error("Failed to load image for compression: " + error.message)
+          );
+        };
+        img.src = event.target.result; // setting image source to the file data
+      };
+
+      // if file reading fails, reject the promise with an error
+      reader.onerror = (error) => {
+        reject(new Error("Failed to read file: " + error.message));
+      };
+      reader.readAsDataURL(file); // reading the file as Data URL
+    });
   }
 
   // TODO: Add file validation helpers
