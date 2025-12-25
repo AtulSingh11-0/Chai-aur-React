@@ -13,6 +13,8 @@ const config = {
   appwriteApiKey: String(import.meta.env.VITE_APPWRITE_API_KEY),
 
   tinymceApiKey: String(import.meta.env.VITE_TINYMCE_API_KEY),
+
+  googleGenAiApiKey: String(import.meta.env.VITE_GOOGLE_GENAI_API_KEY),
 };
 
 export default config;
