@@ -3,13 +3,14 @@ import config from "./src/config/config";
 import { PostStatus } from "./src/constants/enums/postStatus";
 import engagementService from "./src/lib/engagementService";
 import { calculateReadingTime } from "./src/utils/readingTime";
+import aiService from "./src/lib/aiService";
 
 // --- CONFIGURATION ---
 const APPWRITE_ENDPOINT = config.appwriteEndpoint;
 const APPWRITE_PROJECT_ID = config.appwriteProjectId;
 const APPWRITE_API_KEY = config.appwriteApiKey;
 const DATABASE_ID = config.appwriteDatabaseId;
-const TABLE_ID = config.appwritePostTableId;
+const TABLE_ID = config.appwritePostsTableId;
 
 const client = new Client()
   .setEndpoint(APPWRITE_ENDPOINT)
@@ -335,6 +336,26 @@ const updateUsernamesInComments = async () => {
     throw err;
   }
 };
+
+const fetchRow = async (rowId) => {
+  try {
+    const post = await tablesDb.getRow({
+      databaseId: DATABASE_ID,
+      tableId: TABLE_ID,
+      rowId,
+    });
+
+    return post;
+  } catch (err) {
+    console.error("❌ Error fetching row:", err.message);
+  }
+};
+
+// console.log(
+//   await fetchRow("6942a2d30007e694eb56").then(
+//     async (post) => await aiService.generateBlogSummary(post)
+//   )
+// );
 
 // updateUsernamesInComments();
 
