@@ -12,37 +12,97 @@ export class AIService {
 
   async generateBlogSummary(post, retries = 3) {
     try {
-      const prompt = `Generate a concise and engaging summary for the following blog post titled "${
-        post.title
-      }". The summary should capture the main points and entice readers to read the full article. within 50-70 words. Here is the content: ${post.content.replace(
-        /<[^>]*>?/gm,
-        ""
-      )}`;
+      const cleanedPostContent = this.stripHtmlTags(post.content);
+      const truncatedPostContent = this.truncateContent(
+        cleanedPostContent,
+        3000
+      );
+
+      const prompt = `
+      Generate a concise and engaging summary for the following blog post titled "${post.title}".
+      Requirements:
+        - Capture the main points and key takeaways
+        - Make it compelling to entice readers
+        - Length: 50-70 words
+        - Write in an engaging, professional tone
+        - the summary should be in plain text without any markdown or special formatting
+      Content:
+        "${truncatedPostContent}"`;
 
       const response = await this.gemini.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: prompt,
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: prompt,
+              },
+            ],
+          },
+        ],
         config: {
-          temperature: 1.2,
+          temperature: 0.8,
+          maxOutputTokens: 150,
+          topP: 0.9,
           thinkingConfig: {
             thinkingBudget: 0,
           },
         },
       });
 
-      return response.text;
-    } catch (err) {
-      // handle rate limit errors with retry
-      if (err.status === 429 && retries > 0) {
-        const waitTime = 12000; // lets wait for 12 seconds
-        console.log(`Rate limited. Retrying in ${waitTime / 1000}s... (${retries} retries left)`);
-        await new Promise((resolve) => setTimeout(resolve, waitTime));
-        return this.generateBlogSummary(post, retries - 1);
+      const summary =
+        response?.text || response?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!summary || summary.trim().length === 0) {
+        throw new Error("Empty summary generated");
       }
 
-      console.error("Generate blog summary error:", err);
-      throw err;
+      return summary.trim();
+    } catch (err) {
+      return this.handleSummaryErrors(err, post, retries);
     }
+  }
+
+  handleSummaryErrors(err, post, retries) {
+    // handle rate limit errors with retry
+    if (err.status === 429 && retries > 0) {
+      const waitTime = (4 - retries) * 10000; // 10s, 20s, 30s
+      console.log(
+        `Rate limited. Retrying in ${
+          waitTime / 10000
+        }s... (${retries} retries left)`
+      );
+      return new Promise((resolve) => setTimeout(resolve, waitTime)).then(() =>
+        this.generateBlogSummary(post, retries - 1)
+      );
+    }
+
+    // fallback for other errors
+    console.error("Generate blog summary error:", err.message || err);
+
+    // return a simple fallback summary instead of throwing an error
+    return this.createFallbackSummary(post);
+  }
+
+  stripHtmlTags(content) {
+    return content
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  truncateContent(content, maxLength) {
+    if (content.length <= maxLength) return content;
+    return content.substring(0, maxLength) + "...";
+  }
+
+  createFallbackSummary(post) {
+    const plainTextContent = this.stripHtmlTags(post.content);
+    const words = plainTextContent.split(/\s+/).splice(0, 70);
+    return words.join(" ") + (words.length >= 70 ? "..." : "");
   }
 }
 
