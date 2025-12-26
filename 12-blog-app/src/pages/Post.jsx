@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router';
 import { Button, Container, PostDetailSkeleton } from '../components';
 import { CommentSection } from '../components/Comment';
+import aiService from '../lib/aiService';
 import engagementService from '../lib/engagementService';
 import postService from '../lib/postService';
 import storageService from '../lib/storageService';
@@ -14,6 +15,8 @@ export default function Post() {
   const [post, setPost] = React.useState(null);
   const [authorName, setAuthorName] = React.useState('Loading...');
   const [readingTime, setReadingTime] = React.useState(0);
+  const [postSummary, setPostSummary] = React.useState('');
+  const [isSummaryLoading, setIsSummaryLoading] = React.useState(false);
   const [isLiked, setIsLiked] = React.useState(false);
   const [isLiking, setIsLiking] = React.useState(false);
   const [showCopied, setShowCopied] = React.useState(false);
@@ -27,6 +30,21 @@ export default function Post() {
 
   const userData = useSelector(state => state.auth.userData);
   const isAuthor = post && userData ? post.authorId === userData.$id : false;
+
+  const generateBlogSummary = async (post) => {
+    setIsSummaryLoading(true);
+
+    try {
+      // aiService handles retries and fallback internally
+      const summary = await aiService.generateBlogSummary(post);
+      setPostSummary(summary);
+    } catch (err) {
+      console.error('Error generating blog summary:', err);
+      setPostSummary('Unable to generate summary at this time.');
+    } finally {
+      setIsSummaryLoading(false);
+    }
+  }
 
   const handleLikeAndUnlike = async () => {
     // prevent multiple simultaneous requests (debounce)
@@ -338,6 +356,52 @@ export default function Post() {
                     e.target.style.display = 'none';
                   }}
                 />
+              </div>
+            )}
+          </div>
+
+          {/* Post Summary */}
+          <div className='mb-8 bg-white p-6 rounded-lg shadow-md border-l-4 border-[#1a936f]'>
+            <div className='flex items-center justify-between mb-4'>
+              <h2 className='text-2xl md:text-3xl font-semibold text-gray-700 italic'>AI Summary</h2>
+
+              {/* Show Generate button only when no summary exists */}
+              {!postSummary && !isSummaryLoading && (
+                <Button
+                  text='Generate Summary'
+                  variant='primary'
+                  onClick={() => generateBlogSummary(post)}
+                />
+              )}
+            </div>
+
+            {/* Initial state */}
+            {!postSummary && !isSummaryLoading && (
+              <div className='flex items-start gap-3 text-gray-600'>
+                <svg className='w-5 h-5 mt-1 shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 10V3L4 14h7v7l9-11h-7z' />
+                </svg>
+                <p className='text-lg leading-relaxed'>
+                  Click <span className='font-semibold text-[#114b5f]'>Generate Summary</span> to get an AI-powered summary of this blog post.
+                </p>
+              </div>
+            )}
+
+            {/* Loading state */}
+            {isSummaryLoading && (
+              <div className='flex items-center gap-3 text-gray-600'>
+                <div className='animate-spin rounded-full h-5 w-5 border-2 border-[#1a936f] border-t-transparent shrink-0'></div>
+                <span className='text-lg'>Generating AI summary...</span>
+              </div>
+            )}
+
+            {/* Summary display */}
+            {postSummary && !isSummaryLoading && (
+              <div className='flex items-start gap-3'>
+                <svg className='w-5 h-5 mt-1 text-[#1a936f] shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                  <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clipRule='evenodd' />
+                </svg>
+                <p className='text-gray-800 text-lg leading-relaxed'>{postSummary}</p>
               </div>
             )}
           </div>
