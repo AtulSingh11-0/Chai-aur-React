@@ -217,7 +217,7 @@ const fetchDatabaseRows = async () => {
       tableId: TABLE_ID,
       queries: [Query.limit(100)],
     });
-    return response;
+    return response.rows;
   } catch (error) {
     console.error("❌ Error fetching rows:", error.message);
     return [];
@@ -350,6 +350,59 @@ const fetchRow = async (rowId) => {
     console.error("❌ Error fetching row:", err.message);
   }
 };
+
+const updateEmbeddingsForPosts = async () => {
+  try {
+    // 1. Fetch all posts
+    const posts = await fetchDatabaseRows();
+    console.info(`📊 Updating embeddings for ${posts.total} posts...`);
+
+    // 2. generate embedding for each post and update
+    let count = 1;
+
+    for (const post of posts) {
+      try {
+        if (post.embedding == null || post.embedding.length === 0) {
+          const embedding = await aiService.getEmbeddingForContent(
+            post.content
+          );
+
+          // 3. Update post with embedding
+          await tablesDb.updateRow({
+            databaseId: DATABASE_ID,
+            tableId: TABLE_ID,
+            rowId: post.$id,
+            data: {
+              embedding: JSON.stringify(embedding),
+            },
+          });
+
+          console.log(
+            `${count++}. ✅ Updated embedding for Post: "${post.title}"`
+          );
+        }
+        console.log(
+          `${count++}. ℹ️ Embedding already exists for Post: "${
+            post.title
+          }", skipping...`
+        );
+      } catch (err) {
+        console.error(
+          "❌ Error processing post:",
+          post.$id,
+          err.message || err
+        );
+      }
+    }
+  } catch (error) {
+    console.error(
+      "❌ Error updating embeddings for posts:",
+      error.message || error
+    );
+  }
+};
+
+// updateEmbeddingsForPosts();
 
 // console.log(
 //   await fetchRow("6942a2d30007e694eb56").then(
