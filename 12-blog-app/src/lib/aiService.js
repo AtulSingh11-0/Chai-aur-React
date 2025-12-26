@@ -2,18 +2,20 @@ import config from "../config/config";
 import { GoogleGenAI } from "@google/genai";
 
 export class AIService {
-  gemini;
+  #gemini;
 
   constructor() {
-    this.gemini = new GoogleGenAI({
+    this.#gemini = new GoogleGenAI({
       apiKey: config.googleGenAiApiKey,
     });
   }
 
+  // public methods
+
   async generateBlogSummary(post, retries = 3) {
     try {
-      const cleanedPostContent = this.stripHtmlTags(post.content);
-      const truncatedPostContent = this.truncateContent(
+      const cleanedPostContent = this.#stripHtmlTags(post.content);
+      const truncatedPostContent = this.#truncateContent(
         cleanedPostContent,
         3000
       );
@@ -29,7 +31,7 @@ export class AIService {
       Content:
         "${truncatedPostContent}"`;
 
-      const response = await this.gemini.models.generateContent({
+      const response = await this.#gemini.models.generateContent({
         model: "gemini-2.5-flash",
         contents: [
           {
@@ -60,11 +62,61 @@ export class AIService {
 
       return summary.trim();
     } catch (err) {
-      return this.handleSummaryErrors(err, post, retries);
+      return this.#handleSummaryErrors(err, post, retries);
     }
   }
 
-  handleSummaryErrors(err, post, retries) {
+  async getEmbeddingForContent(postContent) {
+    const cleanedPostContent = this.#stripHtmlTags(postContent);
+    const truncatedPostContent = this.#truncateContent(
+      cleanedPostContent,
+      15000
+    );
+
+    try {
+      const response = await this.#gemini.models.embedContent({
+        model: "gemini-embedding-001",
+        contents: [
+          {
+            parts: [{ text: truncatedPostContent }],
+          },
+        ],
+        config: {
+          outputDimensionality: 768,
+        },
+      });
+
+      return response.embeddings?.[0]?.values;
+    } catch (err) {
+      console.error("Get embedding error:", err.message || err);
+      throw err;
+    }
+  }
+
+  async generateEmbedding(postContent) {
+    try {
+      const response = await this.#gemini.models.embedContent({
+        model: "gemini-embedding-001",
+        contents: [
+          {
+            parts: [{ text: postContent }],
+          },
+        ],
+        config: {
+          outputDimensionality: 768,
+        },
+      });
+
+      return response.embeddings?.[0]?.values;
+    } catch (err) {
+      console.error("Get embedding error:", err.message || err);
+      throw err;
+    }
+  }
+
+  // private methods
+
+  #handleSummaryErrors(err, post, retries) {
     // handle rate limit errors with retry
     if (err.status === 429 && retries > 0) {
       const waitTime = (4 - retries) * 10000; // 10s, 20s, 30s
@@ -82,10 +134,10 @@ export class AIService {
     console.error("Generate blog summary error:", err.message || err);
 
     // return a simple fallback summary instead of throwing an error
-    return this.createFallbackSummary(post);
+    return this.#createFallbackSummary(post);
   }
 
-  stripHtmlTags(content) {
+  #stripHtmlTags(content) {
     return content
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
       .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
@@ -94,12 +146,12 @@ export class AIService {
       .trim();
   }
 
-  truncateContent(content, maxLength) {
+  #truncateContent(content, maxLength) {
     if (content.length <= maxLength) return content;
     return content.substring(0, maxLength) + "...";
   }
 
-  createFallbackSummary(post) {
+  #createFallbackSummary(post) {
     const plainTextContent = this.stripHtmlTags(post.content);
     const words = plainTextContent.split(/\s+/).splice(0, 70);
     return words.join(" ") + (words.length >= 70 ? "..." : "");
