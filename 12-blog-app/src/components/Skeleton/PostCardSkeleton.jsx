@@ -6,7 +6,7 @@ export default function PostCardSkeleton() {
       <article className='h-full bg-white rounded-xl shadow-md border-2 border-transparent overflow-hidden flex flex-col'>
         {/* Featured Image Skeleton */}
         <div className='relative h-52 overflow-hidden bg-[#f3e9d2]'>
-          <SkeletonBase className='w-full h-full' variant='card' />
+          <SkeletonBase className='w-full h-full' variant='none' />
         </div>
 
         {/* Content Skeleton */}

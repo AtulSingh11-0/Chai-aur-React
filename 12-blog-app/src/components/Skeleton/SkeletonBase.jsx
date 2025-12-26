@@ -5,6 +5,7 @@ export default function SkeletonBase({ className = '', variant = 'rounded' }) {
     circle: 'rounded-full',
     text: 'rounded',
     card: 'rounded-xl',
+    none: 'rounded-none',
   };
 
   return (
