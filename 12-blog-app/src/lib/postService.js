@@ -148,6 +148,37 @@ export class PostService {
     }
   }
 
+  async searchPostsByRelevance(embeddedQuery, threshold = 0.5) {
+    try {
+      const posts = await this.getAllPosts(
+        [Query.orderDesc("$createdAt")],
+        100
+      ).then((res) => res.rows);
+
+      const results = posts
+        .map((post) => {
+          const postVector =
+            typeof post.embedding === "string"
+              ? JSON.parse(post.embedding)
+              : post.embedding;
+
+          return {
+            ...post,
+            score: this.cosineSimilarity(embeddedQuery, postVector),
+          };
+        })
+        .sort((a, b) => b.score - a.score) // show highest matches first
+        .filter((post) => post.score > threshold); // threshold to filter out irrelevant stuff
+
+      console.log(results);
+
+      return results;
+    } catch (err) {
+      console.error("Error searching posts by relevance:", err.message || err);
+      return [];
+    }
+  }
+
   /**
    * Create a new blog post
    *
@@ -309,6 +340,13 @@ export class PostService {
       console.error("Error deleting post:", err);
       throw err;
     }
+  }
+
+  cosineSimilarity(vecA, vecB) {
+    const dotProduct = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0);
+    const magA = Math.sqrt(vecA.reduce((sum, a) => sum + a * a, 0));
+    const magB = Math.sqrt(vecB.reduce((sum, b) => sum + b * b, 0));
+    return dotProduct / (magA * magB);
   }
 
   // TODO: Add advanced post operations
