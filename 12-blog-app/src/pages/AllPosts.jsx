@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router';
 import { Button, Container, Input, PostCard, PostCardSkeleton } from '../components';
-import aiService from '../lib/aiService';
 import postService from '../lib/postService';
+import { PostStatus } from '../constants/enums/postStatus';
+import { Query } from 'appwrite';
 
 export default function AllPosts() {
   const LIMIT = 12;
@@ -66,29 +67,11 @@ export default function AllPosts() {
     setIsSearching(true);
     setError(null);
     try {
-      const embeddedQuery = await aiService.generateEmbedding(searchTerm);
-
-      const response = await postService.searchPostsByRelevance(embeddedQuery, 0.5);
-
-      if (response && response.length > 0) {
-        setPosts(response);
-      } else {
-        setPosts([]);
+      {
+        const { data } = await postService.searchPostsByRelevance(searchTerm);
+        setPosts(Array.isArray(data?.rows) ? data.rows : []);
+        setHasMore(false); // disable load more for search results
       }
-      setHasMore(false); // disable load more for search results
-
-      // const queries = [
-      //   Query.equal("status", PostStatus.ACTIVE),
-      //   Query.contains("title", searchTerm),
-      //   Query.limit(100),
-      //   Query.orderDesc("publishedDate"),
-      // ];
-
-      // const response = await postService.getAllPosts(queries);
-      // if (response && response.rows) {
-      //   setPosts(response.rows);
-      //   setHasMore(false); // Disable load more for search results
-      // }
     } catch (error) {
       console.log('Error searching posts:', error);
       setError("Search failed. Please try again.");
