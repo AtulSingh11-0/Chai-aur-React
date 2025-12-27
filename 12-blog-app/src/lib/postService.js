@@ -1,4 +1,11 @@
-import { ID, TablesDB, Client, Query } from "appwrite";
+import {
+  ID,
+  TablesDB,
+  Client,
+  Query,
+  Functions,
+  ExecutionMethod,
+} from "appwrite";
 import config from "../config/config";
 import { PostStatus } from "../constants/enums/postStatus";
 import { calculateReadingTime } from "../utils/readingTime";
@@ -14,12 +21,14 @@ import { calculateReadingTime } from "../utils/readingTime";
 export class PostService {
   client = new Client();
   tablesDB;
+  functions;
 
   constructor() {
     this.client
       .setEndpoint(config.appwriteEndpoint)
       .setProject(config.appwriteProjectId);
     this.tablesDB = new TablesDB(this.client);
+    this.functions = new Functions(this.client);
   }
 
   /**
@@ -148,34 +157,35 @@ export class PostService {
     }
   }
 
-  async searchPostsByRelevance(embeddedQuery, threshold = 0.5) {
+  // update method
+  async searchPostsByRelevance(query, limit = 10, offset = 0, threshold = 0.5) {
     try {
-      const posts = await this.getAllPosts(
-        [Query.orderDesc("$createdAt")],
-        100
-      ).then((res) => res.rows);
+      const path = `/search?query=${encodeURIComponent(
+        query
+      )}&limit=${limit}&offset=${offset}&threshold=${threshold}`;
 
-      const results = posts
-        .map((post) => {
-          const postVector =
-            typeof post.embedding === "string"
-              ? JSON.parse(post.embedding)
-              : post.embedding;
+      const response = await this.functions.createExecution({
+        functionId: config.appwriteFunctionsSemanticSearchId,
+        async: false,
+        xpath: path,
+        method: ExecutionMethod.GET,
+      });
 
-          return {
-            ...post,
-            score: this.cosineSimilarity(embeddedQuery, postVector),
-          };
-        })
-        .sort((a, b) => b.score - a.score) // show highest matches first
-        .filter((post) => post.score > threshold); // threshold to filter out irrelevant stuff
-
-      console.log(results);
-
-      return results;
+      const resultData = JSON.parse(
+        response.responseBody ||
+          JSON.stringify({ success: false, data: { rows: [] } })
+      );
+      return resultData;
     } catch (err) {
       console.error("Error searching posts by relevance:", err.message || err);
-      return [];
+
+      // return empty result mock on error to prevent app crashes
+      return {
+        success: false,
+        data: {
+          rows: [],
+        },
+      };
     }
   }
 
@@ -340,13 +350,6 @@ export class PostService {
       console.error("Error deleting post:", err);
       throw err;
     }
-  }
-
-  cosineSimilarity(vecA, vecB) {
-    const dotProduct = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0);
-    const magA = Math.sqrt(vecA.reduce((sum, a) => sum + a * a, 0));
-    const magB = Math.sqrt(vecB.reduce((sum, b) => sum + b * b, 0));
-    return dotProduct / (magA * magB);
   }
 
   // TODO: Add advanced post operations
