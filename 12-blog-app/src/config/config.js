@@ -11,6 +11,9 @@ const config = {
 
   appwriteBucketId: String(import.meta.env.VITE_APPWRITE_BUCKET_ID),
   appwriteApiKey: String(import.meta.env.VITE_APPWRITE_API_KEY),
+  appwriteFunctionsSemanticSearchId: String(
+    import.meta.env.VITE_APPWRITE_FUNCTIONS_SEMANTIC_SEARCH_ID
+  ),
 
   tinymceApiKey: String(import.meta.env.VITE_TINYMCE_API_KEY),
 
