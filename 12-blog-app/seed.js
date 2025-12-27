@@ -4,6 +4,7 @@ import { PostStatus } from "./src/constants/enums/postStatus";
 import engagementService from "./src/lib/engagementService";
 import { calculateReadingTime } from "./src/utils/readingTime";
 import aiService from "./src/lib/aiService";
+import { ExecutionMethod, Functions } from "appwrite";
 
 // --- CONFIGURATION ---
 const APPWRITE_ENDPOINT = config.appwriteEndpoint;
@@ -17,6 +18,7 @@ const client = new Client()
   .setProject(APPWRITE_PROJECT_ID)
   .setKey(APPWRITE_API_KEY);
 
+const functions = new Functions(client);
 const tablesDb = new TablesDB(client);
 
 // --- SEED DATA ---
@@ -401,6 +403,39 @@ const updateEmbeddingsForPosts = async () => {
     );
   }
 };
+
+// const result = await functions.createExecution({
+//     body: '<BODY>', // optional
+//     headers: {}, // optional
+//     scheduledAt: '<SCHEDULED_AT>' // optional
+// });
+
+const getPostsByRelevance = async (
+  query,
+  limit = 100,
+  offset = 0,
+  threshold = 0.5
+) => {
+  try {
+    const path = `/search?query=${query}&limit=${limit}&offset=${offset}&threshold=${threshold}`;
+    console.log("🔍 Fetching posts by relevance with path:", path);
+    const response = await functions.createExecution({
+      functionId: config.appwriteFunctionsSemanticSearchId,
+      async: false,
+      xpath: path,
+      method: ExecutionMethod.GET,
+    });
+
+    console.log(
+      "✅ Semantic Search Response:",
+      JSON.parse(response.responseBody || "{}")
+    );
+  } catch (err) {
+    console.error("❌ Error fetching posts by relevance:", err.message);
+  }
+};
+
+// getPostsByRelevance("tailwind ");
 
 // updateEmbeddingsForPosts();
 
