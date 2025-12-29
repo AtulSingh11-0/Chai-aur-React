@@ -2,11 +2,13 @@ import React from 'react';
 import { Link } from 'react-router';
 import { Button, Container, Input, PostCard, PostCardSkeleton } from '../components';
 import postService from '../lib/postService';
-import { PostStatus } from '../constants/enums/postStatus';
-import { Query } from 'appwrite';
 
 export default function AllPosts() {
   const LIMIT = 12;
+  const TYPING_SPEED = 50; // milliseconds per character
+  const DELETING_SPEED = 50; // milliseconds per character
+  const INITIAL_DELAY = 500; // initial delay before typing starts
+  const PAUSE_AT_END = 2000; // pause at end of typing before deleting
 
   const [hasMore, setHasMore] = React.useState(true);
   const [offset, setOffset] = React.useState(0);
@@ -16,10 +18,72 @@ export default function AllPosts() {
   const [loadingMore, setLoadingMore] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [isSearching, setIsSearching] = React.useState(false);
+  const [placeholder, setPlaceholder] = React.useState('');
+  const [placeholderIndex, setPlaceholderIndex] = React.useState(0);
+
+  // dynamic placeholder texts showcasing semantic search capabilities
+  const placeholderTexts = React.useMemo(() => [
+    "Search with keywords...",
+    "How to build a React app?",
+    "What is machine learning?",
+    "Best practices for API design",
+    "Why use TypeScript?",
+    "Explain database indexing",
+    "Guide to responsive design",
+    "What are design patterns?",
+  ], []);
+
+  // typing animation effect for placeholder
+  React.useEffect(() => {
+    let charIndex = 0;
+    let isDeleting = false;
+    let timeoutId;
+
+    // function to handle typing and deleting effect
+    const typeText = () => {
+      // get current text to type or delete from placeholderTexts
+      const currentText = placeholderTexts[placeholderIndex];
+
+      // if we are typing forward
+      if (!isDeleting) {
+        // typing forward
+        setPlaceholder(currentText.substring(0, charIndex + 1));
+        charIndex++; // move to next character
+
+        // if finished typing the whole text
+        if (charIndex === currentText.length) {
+          // pause at end before deleting
+          timeoutId = setTimeout(() => {
+            isDeleting = true;
+            typeText();
+          }, PAUSE_AT_END); // 2s pause at end
+          return; // exit the block here to avoid setting another timeout
+        }
+        timeoutId = setTimeout(typeText, TYPING_SPEED); // typing speed
+      } else {
+        // deleting backward
+        setPlaceholder(currentText.substring(0, charIndex - 1));
+        charIndex--; // move to previous character
+
+        // if finished deleting
+        if (charIndex === 0) {
+          isDeleting = false; // switch to typing mode
+          setPlaceholderIndex((prev) => (prev + 1) % placeholderTexts.length); // move to next placeholder text
+          timeoutId = setTimeout(typeText, INITIAL_DELAY); // brief pause before typing next
+          return; // exit the block here to avoid setting another timeout
+        }
+        timeoutId = setTimeout(typeText, DELETING_SPEED); // deleting speed
+      }
+    };
+
+    timeoutId = setTimeout(typeText, INITIAL_DELAY); // initial delay before starting typing
+    return () => clearTimeout(timeoutId); // cleanup on unmount
+  }, [placeholderIndex, placeholderTexts]);
 
   // fetch all posts on mount
   React.useEffect(() => {
     fetchPosts(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchPosts = async (isNewSearch = false) => {
@@ -103,7 +167,7 @@ export default function AllPosts() {
             <div className='flex-1 relative'>
               <Input
                 type="text"
-                placeholder="Search posts by title..."
+                placeholder={placeholder + (placeholder ? '|' : '')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
