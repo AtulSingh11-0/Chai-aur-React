@@ -404,12 +404,6 @@ const updateEmbeddingsForPosts = async () => {
   }
 };
 
-// const result = await functions.createExecution({
-//     body: '<BODY>', // optional
-//     headers: {}, // optional
-//     scheduledAt: '<SCHEDULED_AT>' // optional
-// });
-
 const getPostsByRelevance = async (
   query,
   limit = 100,
