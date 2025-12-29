@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router';
 import { Button, Container, PostDetailSkeleton } from '../components';
 import { CommentSection } from '../components/Comment';
-import aiService from '../lib/aiService';
 import engagementService from '../lib/engagementService';
 import postService from '../lib/postService';
 import storageService from '../lib/storageService';
@@ -36,7 +35,15 @@ export default function Post() {
 
     try {
       // aiService handles retries and fallback internally
-      const summary = await aiService.generateBlogSummary(post);
+      // const summary = await aiService.generateBlogSummary(post);
+
+      const response = await postService.generateBlogSummary({
+        title: post.title,
+        content: post.content
+      });
+
+      const summary = response.success ? response.data.summary : 'Unable to generate summary at this time.';
+
       setPostSummary(summary);
     } catch (err) {
       console.error('Error generating blog summary:', err);
