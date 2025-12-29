@@ -157,17 +157,17 @@ export class PostService {
     }
   }
 
-  // update method
+  // updated method
   async searchPostsByRelevance(query, limit = 10, offset = 0, threshold = 0.5) {
     try {
-      const path = `/search?query=${encodeURIComponent(
+      const xpath = `/search?query=${encodeURIComponent(
         query
       )}&limit=${limit}&offset=${offset}&threshold=${threshold}`;
 
       const response = await this.functions.createExecution({
         functionId: config.appwriteFunctionsSemanticSearchId,
         async: false,
-        xpath: path,
+        xpath: xpath,
         method: ExecutionMethod.GET,
       });
 
@@ -349,6 +349,40 @@ export class PostService {
     } catch (err) {
       console.error("Error deleting post:", err);
       throw err;
+    }
+  }
+
+  // updated method
+  async generateBlogSummary({ title, content }) {
+    try {
+      const xpath = `/generate-post-summary`;
+      const body = JSON.stringify({ title, content });
+
+      const response = await this.functions.createExecution({
+        functionId: config.appwriteFunctionsGeneratePostsSummaryId,
+        async: false,
+        xpath: xpath,
+        method: ExecutionMethod.POST,
+        body: body,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const resultData = JSON.parse(
+        response.responseBody ||
+          JSON.stringify({ success: false, data: { summary: "" } })
+      );
+
+      return resultData;
+    } catch (err) {
+      console.error("Get generateBlogSummary error:", err.message || err);
+      return {
+        success: false,
+        data: {
+          summary: "",
+        },
+      };
     }
   }
 
