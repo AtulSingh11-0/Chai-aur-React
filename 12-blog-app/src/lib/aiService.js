@@ -12,6 +12,9 @@ export class AIService {
 
   // public methods
 
+  /**
+   * @deprecated - use generateBlogSummary(post, retries) in postService.js instead
+   */
   async generateBlogSummary(post, retries = 3) {
     try {
       const cleanedPostContent = this.#stripHtmlTags(post.content);
@@ -66,9 +69,12 @@ export class AIService {
     }
   }
 
+  /**
+   * @deprecated - implemented in appwrite functions now
+   */
   async getEmbeddingForContent(postContent) {
-    const cleanedPostContent = this.#stripHtmlTags(postContent);
-    const truncatedPostContent = this.#truncateContent(
+    const cleanedPostContent = this.stripHtmlTags(postContent);
+    const truncatedPostContent = this.truncateContent(
       cleanedPostContent,
       15000
     );
@@ -93,6 +99,9 @@ export class AIService {
     }
   }
 
+  /**
+   * @deprecated - implemented in appwrite functions now
+   */
   async generateEmbedding(postContent) {
     try {
       const response = await this.#gemini.models.embedContent({
@@ -116,6 +125,9 @@ export class AIService {
 
   // private methods
 
+  /**
+   * @deprecated - implemented in appwrite functions now
+   */
   #handleSummaryErrors(err, post, retries) {
     // handle rate limit errors with retry
     if (err.status === 429 && retries > 0) {
@@ -137,6 +149,9 @@ export class AIService {
     return this.#createFallbackSummary(post);
   }
 
+  /**
+   * @deprecated - implemented in appwrite functions now
+   */
   #stripHtmlTags(content) {
     return content
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
@@ -146,11 +161,17 @@ export class AIService {
       .trim();
   }
 
+  /**
+   * @deprecated - implemented in appwrite functions now
+   */
   #truncateContent(content, maxLength) {
     if (content.length <= maxLength) return content;
     return content.substring(0, maxLength) + "...";
   }
 
+  /**
+   * @deprecated - implemented in appwrite functions now
+   */
   #createFallbackSummary(post) {
     const plainTextContent = this.stripHtmlTags(post.content);
     const words = plainTextContent.split(/\s+/).splice(0, 70);
