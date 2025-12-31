@@ -1,3 +1,5 @@
+import ProfileDropdown from "./Profile/ProfileDropdown";
+
 // Common components
 export { Button, Input, Logo, Select } from "./Common";
 
@@ -6,6 +8,9 @@ export { Container, Footer, Header, Protected } from "./layout";
 
 // Auth components
 export { LoginForm, SignupForm, LogoutButton } from "./auth";
+
+// Profile components
+export { ProfileDropdown } from "./Profile";
 
 // RTE component
 export { RTE } from "./RTE";

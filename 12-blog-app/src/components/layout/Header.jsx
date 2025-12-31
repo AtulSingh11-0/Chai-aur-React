@@ -1,9 +1,10 @@
 import { useSelector } from 'react-redux';
 import { NavLink } from 'react-router';
-import { Container, Logo, LogoutButton } from '../index';
+import { Container, Logo, ProfileDropdown } from '../index';
 
 export default function Header() {
   const authStatus = useSelector((state) => state.auth.isAuthenticated);
+  const userName = useSelector((state) => state.auth.userData?.name);
 
   const navLinks = [
     {
@@ -30,7 +31,7 @@ export default function Header() {
       name: 'Add Post',
       path: '/add-post',
       active: authStatus
-    },
+    }
   ]
 
   return (
@@ -61,11 +62,7 @@ export default function Header() {
               ) : null
             ))}
 
-            {authStatus && (
-              <li>
-                <LogoutButton />
-              </li>
-            )}
+            {authStatus && <ProfileDropdown userName={userName} />}
           </ul>
         </nav>
       </Container>
