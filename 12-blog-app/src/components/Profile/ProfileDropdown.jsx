@@ -9,7 +9,7 @@ export default function ProfileDropdown({ userName = 'User' }) {
   const profileLinks = [
     {
       name: 'My Profile',
-      path: '/profile',
+      path: '/my-profile',
       icon: <ProfileIcon />
     },
     {
@@ -94,7 +94,7 @@ export default function ProfileDropdown({ userName = 'User' }) {
               <li key={link.name}>
                 <Link
                   to={link.path}
-                  className='flex items-center gap-3 px-4 py-2.5 text-sm text-[#114b5f] hover:bg-[#f3e9d2] transition-colors duration-150 group'
+                  className='flex items-center gap-3 px-4 py-2.5 text-sm text-[#114b5f] hover:bg-[#e2efdd] transition-colors duration-150 group'
                   onClick={() => setOpen(false)}
                   role="menuitem"
                 >

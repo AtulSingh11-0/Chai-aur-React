@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router'
 import App from './App.jsx'
-import { Protected } from './components/index.js'
+import { MyProfile, Protected } from './components/index.js'
 import './index.css'
 import { AddPost, AllPosts, EditPost, Home, Login, Post, Signup } from './pages'
 import store from './store/store.js'
@@ -20,6 +20,7 @@ const router = createBrowserRouter(
         <Route path='/add-post' element={<AddPost />} />
         <Route path='/edit-post/:slug' element={<EditPost />} />
         <Route path='/post/:slug' element={<Post />} />
+        <Route path='/my-profile' element={<MyProfile />} />
       </Route>
     </Route>
   )

@@ -10,7 +10,7 @@ export { Container, Footer, Header, Protected } from "./layout";
 export { LoginForm, SignupForm, LogoutButton } from "./auth";
 
 // Profile components
-export { ProfileDropdown } from "./Profile";
+export { ProfileDropdown, MyProfile } from "./Profile";
 
 // RTE component
 export { RTE } from "./RTE";
