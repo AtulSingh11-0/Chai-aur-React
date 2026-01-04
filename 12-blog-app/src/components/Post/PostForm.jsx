@@ -17,7 +17,8 @@ export default function PostForm({ post }) {
     register,
     setValue,
     control,
-    getValues
+    getValues,
+    formState: { errors },
   } = useForm({
     defaultValues: {
       title: post?.title || '',
@@ -155,9 +156,22 @@ export default function PostForm({ post }) {
                 placeholder="Enter your post title"
                 type='text'
                 {...register('title', {
-                  required: true,
+                  required: 'Title is required',
+                  minLength: {
+                    value: 3,
+                    message: 'Title must be at least 3 characters long'
+                  },
+                  maxLength: {
+                    value: 200,
+                    message: 'Title must be less than 200 characters'
+                  }
                 })}
               />
+              {errors.title && (
+                <p className='mt-1 text-red-600 text-sm'>
+                  {errors.title.message}
+                </p>
+              )}
             </div>
 
             {/* Slug Input box */}
@@ -173,9 +187,22 @@ export default function PostForm({ post }) {
                   });
                 }}
                 {...register('slug', {
-                  required: true,
+                  required: 'Slug is required',
+                  minLength: {
+                    value: 3,
+                    message: 'Slug must be at least 3 characters long'
+                  },
+                  pattern: {
+                    value: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+                    message: 'Slug can only contain lowercase letters, numbers, and hyphens'
+                  }
                 })}
               />
+              {errors.slug && (
+                <p className='mt-1 text-red-600 text-sm'>
+                  {errors.slug.message}
+                </p>
+              )}
               <p className='mt-2 text-xs text-gray-600'>This will be used in the post URL</p>
             </div>
 
@@ -186,7 +213,19 @@ export default function PostForm({ post }) {
                 placeholder='Write your post content here...'
                 control={control}
                 defaultValue={getValues('content') || ''}
+                rules={{
+                  required: 'Post content is required',
+                  minLength: {
+                    value: 50,
+                    message: 'Content must be at least 50 characters long'
+                  }
+                }}
               />
+              {errors.content && (
+                <p className='mt-1 text-red-600 text-sm'>
+                  {errors.content.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -199,9 +238,28 @@ export default function PostForm({ post }) {
                 type='file'
                 accept="image/png, image/jpeg, image/jpg, image/gif, image/webp"
                 {...register('featuredImage', {
-                  required: !post
+                  required: !post ? 'Featured image is required for new posts' : false,
+                  validate: {
+                    fileSize: (files) => {
+                      if (!files || files.length === 0) return true;
+                      const file = files[0];
+                      const maxSize = 10 * 1024 * 1024; // 10MB
+                      return file.size <= maxSize || 'File size must be less than 10MB';
+                    },
+                    fileType: (files) => {
+                      if (!files || files.length === 0) return true;
+                      const file = files[0];
+                      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+                      return allowedTypes.includes(file.type) || 'Only PNG, JPG, GIF, and WEBP images are allowed';
+                    }
+                  }
                 })}
               />
+              {errors.featuredImage && (
+                <p className='mt-1 text-red-600 text-sm'>
+                  {errors.featuredImage.message}
+                </p>
+              )}
               <p className='mt-2 text-xs text-gray-600'>PNG, JPG, GIF, WEBP (Max 10MB)</p>
             </div>
 
@@ -211,9 +269,14 @@ export default function PostForm({ post }) {
                 options={[PostStatus.ACTIVE, PostStatus.ARCHIVED, PostStatus.DRAFT, PostStatus.INACTIVE]}
                 label='Status'
                 {...register('status', {
-                  required: true,
+                  required: 'Please select a status for your post',
                 })}
               />
+              {errors.status && (
+                <p className='mt-1 text-red-600 text-sm'>
+                  {errors.status.message}
+                </p>
+              )}
             </div>
 
             {/* Preview of existing featured image when editing */}
