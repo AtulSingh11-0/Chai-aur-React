@@ -8,6 +8,9 @@ const config = {
   appwriteCommentsTableId: String(
     import.meta.env.VITE_APPWRITE_COMMENTS_TABLE_ID
   ),
+  appwriteProfilesTableId: String(
+    import.meta.env.VITE_APPWRITE_PROFILES_TABLE_ID
+  ),
 
   appwriteBucketId: String(import.meta.env.VITE_APPWRITE_BUCKET_ID),
   appwriteApiKey: String(import.meta.env.VITE_APPWRITE_API_KEY),
